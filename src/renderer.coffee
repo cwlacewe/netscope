@@ -76,7 +76,15 @@ class Renderer
                 summary.pop()
                 summary.push(entry)
              else
-                entry = $(n).clone()          
+                entry = {
+                    ID: n.ID
+                    name: n.name
+                    type: n.type
+                    ch_in: n.ch_in
+                    dim_in: n.dim_in
+                    ch_out: n.ch_out
+                    dim_out: n.dim_out
+                }            
                 summary.push(entry)     
         return summary   
         
