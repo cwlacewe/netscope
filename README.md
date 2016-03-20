@@ -6,10 +6,10 @@ Netscope is a web-based tool for visualizing neural network topologies. It curre
 This fork adds analysis capabilities, enabling the computation of network complexity (number of operations) and network size (number of parameters) for easy comparison of different networks.
 
 ### Documentation
-- Netscope [Quick Start Guide](http://ethereon.github.io/netscope/quickstart.html)
+- Netscope [Quick Start Guide](http://dgschwend.github.io/netscope/quickstart.html)
 
 ### Demo
-- [Visualization of the Deep Convolutional Neural Network "AlexNet"](http://ethereon.github.io/netscope/#/preset/alexnet)
+- [Visualization of the Deep Convolutional Neural Network "SqueezeNet"](http://dgschwend.github.io/netscope/#/preset/squeezenet)
 
 ### License
 
