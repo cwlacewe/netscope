@@ -2376,7 +2376,7 @@ module.exports = Renderer = (function() {
         summary.pop();
         summary.push(entry);
       } else {
-        entry = n.clone();
+        entry = $(n).clone();
         summary.push(entry);
       }
     }

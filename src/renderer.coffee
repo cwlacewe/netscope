@@ -76,7 +76,7 @@ class Renderer
                 summary.pop()
                 summary.push(entry)
              else
-                entry = n.clone()           
+                entry = $(n).clone()          
                 summary.push(entry)     
         return summary   
         
