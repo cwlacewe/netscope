@@ -1,46 +1,18 @@
-name: "InceptionV3"
+name: "Inception_v3"
 layer {
   name: "data"
   type: "Data"
   top: "data"
-  top: "label"
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    mirror: true
-    crop_size: 299
-    mean_value: 104
-    mean_value: 117
-    mean_value: 123
-  }
-  data_param {
-    source: "/mnt/disk/ILSVRC2012/300px_ilsvrc12_train_lmdb"
-    batch_size: 20
-    backend: LMDB
+  input_param {
+      shape: {
+          dim: 1
+          dim: 3
+          dim: 299
+          dim: 299
+      }
   }
 }
 layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    mirror: false
-    crop_size: 299
-    mean_value: 104
-    mean_value: 117
-    mean_value: 123
-  }
-  data_param {
-    source: "/mnt/disk/ILSVRC2012/300px_ilsvrc12_val_lmdb"
-    batch_size: 5
-    backend: LMDB
-  }
-}layer {
   name: "conv_conv2d"
   type: "Convolution"
   bottom: "data"
