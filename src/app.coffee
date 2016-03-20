@@ -9,6 +9,8 @@ class AppController
         @$netBox    = $('#net-container')
         @$netError  = $('#net-error')
         @svg        = '#net-svg'
+        @$tableBox  = $('#table-container')
+        @table      = '#table-content'
         @setupErrorHandler()
 
     startLoading: (loader, args...) ->
@@ -16,6 +18,7 @@ class AppController
             return
         @$netError.hide()
         @$netBox.hide()
+        @$tableBox.hide()
         @$spinner.show()
         loader args..., (net) => @completeLoading(net)
 
@@ -23,9 +26,10 @@ class AppController
         @$spinner.hide()
         $('#net-title').html(net.name.replace(/_/g, ' '))
         @$netBox.show()
+        @$tableBox.show()
         $(@svg).empty()
         $('.qtip').remove()
-        renderer = new Renderer net, @svg
+        renderer = new Renderer net, @svg, @table
         @inProgress = false
 
     makeLoader: (loader) ->

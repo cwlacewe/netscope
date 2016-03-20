@@ -1,16 +1,20 @@
+tableify = require('tableify')
+require('tablesorter')
+
 module.exports =
 class Renderer
-    constructor: (@net, @parent) ->
+    constructor: (@net, @parent, @table) ->
         @iconify = false
         @layoutDirection = 'tb'
         @generateGraph()
+        @renderTable() 
 
     setupGraph: ->
         @graph = new dagreD3.graphlib.Graph()
         @graph.setDefaultEdgeLabel ( -> {} )
         @graph.setGraph
             rankdir: @layoutDirection
-            ranksep: 30, # Vertical node separation
+            ranksep: 20, # Vertical node separation
             nodesep: 10, # Horizontal node separation
             edgesep: 20, # Horizontal edge separation
             marginx:  0, # Horizontal graph margin
@@ -39,6 +43,50 @@ class Renderer
         for sink in @graph.sinks()
             (@graph.node sink).class = 'node-type-sink'
         @render()
+        
+    generateTable: ->
+        entry = {name: 'start'}
+        tbl = []
+        id = 0
+        for n in @net.sortTopologically()
+            id++
+            entry = {
+                ID: id
+                name: n.name
+                type: n.type
+                ch_in: n.dim.featIn
+                dim_in: n.dim.wIn+'x'+n.dim.hIn
+                ch_out: n.dim.featOut
+                dim_out: n.dim.wOut+'x'+n.dim.hOut
+            }                
+            tbl.push(entry)
+        return tbl
+        
+    summarizeTable: (tbl) ->
+        entry = {name: 'start'}
+        summary = []
+        for n in tbl
+            submodule = n.name.indexOf('/')
+            if (submodule>0 and entry.name.substring(0,submodule) == n.name.substring(0,submodule))
+                entry.ID += '.'
+                entry.name = n.name.substring(0,submodule)
+                entry.type = 'submodule'
+                entry.ch_out = n.ch_out
+                entry.dim_out = n.dim_out
+                summary.pop()
+                summary.push(entry)
+             else
+                entry = n              
+                summary.push(entry)     
+        return summary   
+        
+    renderTable: ->
+        tbl = @generateTable()
+        summary = @summarizeTable(tbl)
+        $(@table).html('<h3>Summary:</h3>'+tableify(summary)+
+                       '<h3>Details:</h3>'+tableify(tbl));
+        $(@table+' table').tablesorter()
+        
 
     insertNode: (layers) ->
         baseNode = layers[0]
@@ -47,13 +95,13 @@ class Renderer
         for layer in layers
             layer.isInGraph = true
             nodeLabel += @generateLabel layer
-        nodeDesc =
-            labelType   : 'html'
-            label       : nodeLabel
-            class       : nodeClass
-            layers      : layers
-            rx          : 5
-            ry          : 5
+            nodeDesc =
+                labelType   : 'html'
+                label       : nodeLabel
+                class       : nodeClass
+                layers      : layers
+                rx          : 5
+                ry          : 5
         if @iconify
             _.extend nodeDesc,
                 shape: 'circle'
@@ -66,8 +114,9 @@ class Renderer
             ''
 
     insertLink: (src, dst) ->
-        @graph.setEdge src.name, dst.name,
-            arrowhead : 'vee'
+        lbl = src.dim.featOut+'ch ⋅ '+src.dim.wOut+'×'+src.dim.hOut                       
+        @graph.setEdge(src.name, dst.name,
+           { arrowhead: 'vee', label: lbl } );
 
     renderKey:(key) ->
         key.replace(/_/g, ' ')

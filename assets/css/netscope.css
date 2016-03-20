@@ -51,6 +51,30 @@ h1, h2, h3 {
     text-align: center;
 }
 
+#table-container {
+    display: none;
+    text-align: center;   
+    padding-top:20px; 
+}
+
+#table-header {
+    padding-top: 20px;
+    border-top: 1px solid #554037;
+    min-width: 400px;
+    text-align: center;
+}
+
+#table-content {
+    text-align: center;
+}
+
+#table-content table {
+    display: inline-block;
+    text-align: left;
+    width:auto;
+    
+}
+
 #net-group {
     display: inline-block;
 }

@@ -1,5 +1,5 @@
 class Node
-    constructor: (@name, @type, @attribs={}) ->
+    constructor: (@name, @type, @attribs={}, @dim={}) ->
         @parents = []
         @children = []
         # Nodes to be coalesced (by the renderer) with the current one.
@@ -37,8 +37,8 @@ class Network
     constructor: (@name='Untitled Network') ->
         @nodes = []
 
-    createNode: (label, type, attribs) ->
-        node = new Node label, type, attribs
+    createNode: (label, type, attribs, dim) ->
+        node = new Node label, type, attribs, dim
         @nodes.push node
         return node
 
