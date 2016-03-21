@@ -15,9 +15,9 @@ h1, h2, h3 {
 /* Layout */
 
 #master-container {
-    overflow: hidden;
+    /*overflow: hidden;
     height: 100%;
-    width: 100%;
+    width: 100%;*/
 }
 
 #net-column {
@@ -140,6 +140,15 @@ h1, h2, h3 {
 
 .node-type-inner-product .node-label, .node-type-innerproduct .node-label {
     color: #FFF;
+}
+
+.node-type-lrn {
+    fill: #A265AC;  /* dirty pink */
+    fill: #bd0026;  /* deep red */
+}
+
+.node-type-lrn .node-label {
+    color: #fff;
 }
 
 .node-type-source {

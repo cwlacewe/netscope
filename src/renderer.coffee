@@ -96,6 +96,16 @@ class Renderer
         $(@table).html('<h3>Summary:</h3>'+Tableify(summary)+
                        '<h3>Details:</h3>'+Tableify(tbl));
         $(@table+' table').tablesorter()
+        for row in $(@table+' table tr')
+            #debugger;
+            # scroll to element on click
+            row.onclick = -> 
+                #debugger;
+                node = $('div[id^=node-'+(this.children[1]).textContent+']')
+                $("body,html").animate(
+                    { scrollTop: node.offset().top-100 }, 200
+                );
+                node.highlight();
         
 
     insertNode: (layers) ->
@@ -119,14 +129,13 @@ class Renderer
 
     generateLabel: (layer) ->
         if not @iconify
-            '<div class="node-label">'+layer.name+'</div>'
+            '<div class="node-label" id="node-'+layer.name+'">'+layer.name+'</div>'
         else
             ''
 
     insertLink: (src, dst) ->
         lbl = src.analysis.chOut+'ch ⋅ '+src.analysis.wOut+'×'+src.analysis.hOut                       
-        @graph.setEdge(src.name, dst.name,
-           { arrowhead: 'vee', label: lbl } );
+        @graph.setEdge(src.name, dst.name, { arrowhead: 'vee', label: lbl } );
 
     renderKey:(key) ->
         key.replace(/_/g, ' ')
