@@ -5,22 +5,31 @@ module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
-    var d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, layertype, len, len1, len2, mode, n, numout, p, pad, pad_h, pad_w, parent, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, size, stride, stride_h, stride_w;
+    var d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, layertype, len, len1, len2, mode, n, num_inputs, num_ops, numout, p, pad, pad_h, pad_w, params, parent, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref3, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers;
     ref = net.nodes;
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
       d = n.analysis;
       d.wIn = d.hIn = d.wOut = d.hOut = 0;
       d.chIn = d.chOut = 0;
-      layertype = n.type.toUpperCase();
+      d.comp = {
+        macc: 0,
+        comp: 0,
+        add: 0,
+        div: 0,
+        exp: 0
+      };
+      d.mem = 0;
+      layertype = n.type.toLowerCase();
       parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
       switch (layertype) {
-        case "DATA":
-          if ((n.attribs.input_param != null)) {
-            d.chIn = n.attribs.input_param.shape.dim[1];
-            d.wIn = n.attribs.input_param.shape.dim[2];
-            d.hIn = n.attribs.input_param.shape.dim[3];
-          } else if ((((ref2 = n.attribs.transform_param) != null ? ref2.crop_size : void 0) != null)) {
+        case "data":
+          if (((ref2 = n.attribs.input_param) != null ? ref2.shape : void 0) != null) {
+            shape = n.attribs.input_param.shape;
+            d.chIn = shape.dim[1];
+            d.wIn = shape.dim[2];
+            d.hIn = shape.dim[3];
+          } else if (((ref3 = n.attribs.transform_param) != null ? ref3.crop_size : void 0) != null) {
             d.wIn = d.hIn = n.attribs.transform_param.crop_size;
             d.chIn = 3;
           } else {
@@ -31,101 +40,131 @@ module.exports = Analyzer = (function() {
           d.hOut = d.hIn;
           d.chOut = d.chIn;
           break;
-        case "CONVOLUTION":
-          kernel_w = (ref3 = n.attribs.convolution_param.kernel_w) != null ? ref3 : n.attribs.convolution_param.kernel_size;
-          kernel_h = (ref4 = n.attribs.convolution_param.kernel_h) != null ? ref4 : n.attribs.convolution_param.kernel_size;
-          stride_w = (ref5 = n.attribs.convolution_param.stride_w) != null ? ref5 : (ref6 = n.attribs.convolution_param.stride) != null ? ref6 : 1;
-          stride_h = (ref7 = n.attribs.convolution_param.stride_h) != null ? ref7 : (ref8 = n.attribs.convolution_param.stride) != null ? ref8 : 1;
-          pad_w = (ref9 = n.attribs.convolution_param.pad_w) != null ? ref9 : (ref10 = n.attribs.convolution_param.pad) != null ? ref10 : 0;
-          pad_h = (ref11 = n.attribs.convolution_param.pad_h) != null ? ref11 : (ref12 = n.attribs.convolution_param.pad) != null ? ref12 : 0;
-          numout = n.attribs.convolution_param.num_output;
+        case "convolution":
+          params = n.attribs.convolution_param;
+          kernel_w = (ref4 = params.kernel_w) != null ? ref4 : params.kernel_size;
+          kernel_h = (ref5 = params.kernel_h) != null ? ref5 : params.kernel_size;
+          stride_w = (ref6 = params.stride_w) != null ? ref6 : (ref7 = params.stride) != null ? ref7 : 1;
+          stride_h = (ref8 = params.stride_h) != null ? ref8 : (ref9 = params.stride) != null ? ref9 : 1;
+          pad_w = (ref10 = params.pad_w) != null ? ref10 : (ref11 = params.pad) != null ? ref11 : 0;
+          pad_h = (ref12 = params.pad_h) != null ? ref12 : (ref13 = params.pad) != null ? ref13 : 0;
+          numout = params.num_output;
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
           d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
           d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
           d.chIn = parent.chOut;
           d.chOut = numout;
+          d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
           break;
-        case "INNERPRODUCT":
-        case "INNER_PRODUCT":
+        case "innerproduct":
+        case "inner_product":
           numout = n.attribs.inner_product_param.num_output;
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
+          d.chIn = parent.chOut;
           d.wOut = 1;
           d.hOut = 1;
-          d.chIn = parent.chOut;
           d.chOut = numout;
+          d.comp.macc = (d.wIn * d.hIn) * d.chIn * d.chOut;
           break;
-        case "POOLING":
-          kernel = n.attribs.pooling_param.kernel_size;
-          stride = (ref13 = n.attribs.pooling_param.stride) != null ? ref13 : 1;
-          pad = (ref14 = n.attribs.pooling_param.pad) != null ? ref14 : 0;
-          isglobal = (ref15 = n.attribs.pooling_param.global_pooling) != null ? ref15 : 0;
+        case "pooling":
+          params = n.attribs.pooling_param;
+          kernel = params.kernel_size;
+          stride = (ref14 = params.stride) != null ? ref14 : 1;
+          pad = (ref15 = params.pad) != null ? ref15 : 0;
+          isglobal = (ref16 = params.global_pooling) != null ? ref16 : 0;
+          pooltype = ((ref17 = params.pool) != null ? ref17 : 'MAX').toUpperCase();
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
+          d.chIn = parent.chOut;
+          d.chOut = d.chIn;
+          d.wOut = Math.ceil((d.wIn + 2 * pad - kernel) / stride) + 1;
+          d.hOut = Math.ceil((d.hIn + 2 * pad - kernel) / stride) + 1;
           if (isglobal) {
             d.wOut = d.hOut = 1;
-          } else {
-            d.wOut = Math.ceil((d.wIn + 2 * pad - kernel) / stride) + 1;
-            d.hOut = Math.ceil((d.hIn + 2 * pad - kernel) / stride) + 1;
           }
-          d.chOut = d.chIn = parent.chOut;
+          num_ops = isglobal ? (d.wIn * d.hIn) * d.chIn : (d.wOut * d.hOut) * kernel * kernel * d.chOut;
+          if (pooltype === 'MAX') {
+            d.comp.comp = num_ops;
+          } else if (pooltype === 'AVE') {
+            d.comp.add = num_ops;
+          } else {
+            onerror("Unknown pooling type " + pooltype);
+          }
           break;
-        case "BATCHNORM":
+        case "batchnorm":
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn = parent.chOut;
+          d.comp.add = d.wIn * d.hIn * d.chIn;
+          d.comp.div = d.wIn * d.hIn * d.chIn;
           break;
-        case "LRN":
-          mode = (ref16 = n.attribs.lrn_param.norm_region) != null ? ref16 : 'ACROSS_CHANNELS';
+        case "lrn":
+          mode = (ref18 = n.attribs.lrn_param.norm_region) != null ? ref18 : 'ACROSS_CHANNELS';
           size = n.attribs.lrn_param.local_size;
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn = parent.chOut;
+          num_inputs = d.wIn * d.hIn * d.chIn;
+          d.comp.macc = num_inputs * size;
+          d.comp.add = num_inputs;
+          d.comp.exp = num_inputs;
+          d.comp.div = num_inputs * 2;
           break;
-        case "CONCAT":
+        case "concat":
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
-          ref17 = n.parents;
-          for (j = 0, len1 = ref17.length; j < len1; j++) {
-            p = ref17[j];
+          ref19 = n.parents;
+          for (j = 0, len1 = ref19.length; j < len1; j++) {
+            p = ref19[j];
             d.chIn += p.analysis.chOut;
           }
           d.chOut = d.chIn;
-          ref18 = n.parents;
-          for (k = 0, len2 = ref18.length; k < len2; k++) {
-            p = ref18[k];
+          ref20 = n.parents;
+          for (k = 0, len2 = ref20.length; k < len2; k++) {
+            p = ref20[k];
             failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
           }
           if (failed) {
             window.onerror('CONCAT: input dimensions dont agree!');
           }
           break;
-        case "RELU":
-        case "DROPOUT":
-        case "SOFTMAX":
-        case "SOFTMAXWITHLOSS":
-        case "SOFTMAX_LOSS":
+        case "relu":
+        case "dropout":
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn = parent.chOut;
+          d.comp.comp = d.wIn * d.hIn * d.chIn;
           break;
-        case "FLATTEN":
+        case "softmax":
+        case "softmaxwithloss":
+        case "softmax_loss":
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn = parent.chOut;
+          d.comp.exp = d.wIn * d.hIn * d.chIn;
+          d.comp.add = d.wIn * d.hIn * d.chIn;
+          d.comp.div = d.wIn * d.hIn * d.chIn;
+          break;
+        case "flatten":
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
           d.chIn = parent.chOut;
           d.wOut = d.hOut = 1;
           d.chOut = d.chIn * d.wIn * d.hIn;
           break;
-        case "IMPLICIT":
+        case "implicit":
           d.wIn = d.hIn = 0;
           d.chIn = 0;
           d.wOut = d.hOut = 0;
@@ -136,7 +175,8 @@ module.exports = Analyzer = (function() {
           console.log(n);
           debugger;
       }
-      if (layertype !== "RELU" && layertype !== "SOFTMAX" && layertype !== "SOFTMAXWITHLOSS" && layertype !== "SOFTMAX_LOSS") {
+      trivial_layers = ["relu", "softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"];
+      if ($.inArray(layertype, trivial_layers) === -1) {
         _.extend(n.attribs, {
           analysis: {
             "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
