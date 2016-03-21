@@ -1,9 +1,18 @@
 name: "VGG_ILSVRC_16_layers"
-input: "data"
-input_dim: 10
-input_dim: 3
-input_dim: 224
-input_dim: 224
+layer {
+    type: "data"
+    name: "data"
+    top: "data"
+    input_param: {
+        shape: {
+            dim: 10
+            dim: 3
+            dim: 224
+            dim: 224
+        }
+    }
+
+}
 layers {
   bottom: "data"
   top: "conv1_1"
