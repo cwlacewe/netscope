@@ -142,6 +142,10 @@ h1, h2, h3 {
     color: #FFF;
 }
 
+.node-type-batchnorm {
+    fill: #84AC7E;  /* dirty light green */
+}
+
 .node-type-lrn {
     fill: #A265AC;  /* dirty pink */
     fill: #bd0026;  /* deep red */

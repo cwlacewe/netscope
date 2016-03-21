@@ -124,7 +124,7 @@ generateLayers = function(descriptors, phase) {
 };
 
 analyzeNetwork = function(net) {
-  var d, failed, isglobal, j, kernel, kernel_h, kernel_w, l, layertype, len, len1, len2, m, mode, n, numout, p, pad, pad_h, pad_w, parent, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref3, ref4, ref5, ref6, ref7, ref8, ref9, size, stride, stride_h, stride_w;
+  var d, failed, isglobal, j, kernel, kernel_h, kernel_w, l, layertype, len, len1, len2, m, mode, n, numout, p, pad, pad_h, pad_w, parent, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, size, stride, stride_h, stride_w;
   ref = net.nodes;
   for (j = 0, len = ref.length; j < len; j++) {
     n = ref[j];
@@ -166,11 +166,12 @@ analyzeNetwork = function(net) {
         d.chOut = numout;
         break;
       case "INNERPRODUCT":
+      case "INNER_PRODUCT":
         numout = n.attribs.inner_product_param.num_output;
         d.wIn = parent.wOut;
         d.hIn = parent.hOut;
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
+        d.wOut = 1;
+        d.hOut = 1;
         d.chIn = parent.chOut;
         d.chOut = numout;
         break;
@@ -229,6 +230,7 @@ analyzeNetwork = function(net) {
       case "DROPOUT":
       case "SOFTMAX":
       case "SOFTMAXWITHLOSS":
+      case "SOFTMAX_LOSS":
         d.wIn = parent.wOut;
         d.hIn = parent.hOut;
         d.wOut = d.wIn;
@@ -243,12 +245,9 @@ analyzeNetwork = function(net) {
         d.chOut = d.chIn * d.wIn * d.hIn;
         break;
       case "IMPLICIT":
-        debugger;
-        d.wIn = (ref19 = parent != null ? parent.wOut : void 0) != null ? ref19 : 0;
-        d.hIn = (ref20 = parent != null ? parent.hOut : void 0) != null ? ref20 : 0;
-        d.wOut = 0;
-        d.hOut = 0;
-        d.chIn = parent != null ? parent.chOut : void 0;
+        d.wIn = d.hIn = 0;
+        d.chIn = 0;
+        d.wOut = d.hOut = 0;
         d.chOut = 0;
         break;
       default:
@@ -256,7 +255,7 @@ analyzeNetwork = function(net) {
         console.log(n);
         debugger;
     }
-    if (layertype !== "RELU" && layertype !== "SOFTMAX" && layertype !== "SOFTMAXWITHLOSS") {
+    if (layertype !== "RELU" && layertype !== "SOFTMAX" && layertype !== "SOFTMAXWITHLOSS" && layertype !== "SOFTMAX_LOSS") {
       _.extend(n.attribs, {
         analysis: {
           "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
@@ -278,7 +277,6 @@ generateNetwork = function(layers, header) {
       var node;
       node = nodeTable[name];
       if (node == null) {
-        debugger;
         node = net.createNode(name, 'implicit');
         nodeTable[name] = node;
       }
@@ -2452,11 +2450,25 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.renderTable = function() {
-    var summary, tbl;
+    var i, len, ref, results, row, summary, tbl;
     tbl = this.generateTable();
     summary = this.summarizeTable(tbl);
     $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(tbl));
-    return $(this.table + ' table').tablesorter();
+    $(this.table + ' table').tablesorter();
+    ref = $(this.table + ' table tr');
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      row = ref[i];
+      results.push(row.onclick = function() {
+        var node;
+        node = $('div[id^=node-' + this.children[1].textContent + ']');
+        $("body,html").animate({
+          scrollTop: node.offset().top - 100
+        }, 200);
+        return node.highlight();
+      });
+    }
+    return results;
   };
 
   Renderer.prototype.insertNode = function(layers) {
@@ -2487,7 +2499,7 @@ module.exports = Renderer = (function() {
 
   Renderer.prototype.generateLabel = function(layer) {
     if (!this.iconify) {
-      return '<div class="node-label">' + layer.name + '</div>';
+      return '<div class="node-label" id="node-' + layer.name + '">' + layer.name + '</div>';
     } else {
       return '';
     }
