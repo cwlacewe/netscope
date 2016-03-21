@@ -349,7 +349,7 @@ layers {
 }
 layers {
   bottom: "pool3"
-  top: "conv4"
+  top: "conv4-1024"
   name: "conv4-1024"
   type: CONVOLUTION
   blobs_lr: 1
@@ -373,14 +373,14 @@ layers {
   }
 }
 layers {
-  bottom: "conv4"
-  top: "conv4"
+  bottom: "conv4-1024"
+  top: "conv4-1024"
   name: "relu10"
   type: RELU
 }
 layers {
-  bottom: "conv4"
-  top: "cccp7"
+  bottom: "conv4-1024"
+  top: "cccp7-1024"
   name: "cccp7-1024"
   type: CONVOLUTION
   blobs_lr: 1
@@ -403,14 +403,14 @@ layers {
   }
 }
 layers {
-  bottom: "cccp7"
-  top: "cccp7"
+  bottom: "cccp7-1024"
+  top: "cccp7-1024"
   name: "relu11"
   type: RELU
 }
 layers {
-  bottom: "cccp7"
-  top: "cccp8"
+  bottom: "cccp7-1024"
+  top: "cccp8-1024"
   name: "cccp8-1024"
   type: CONVOLUTION
   blobs_lr: 1
@@ -433,13 +433,13 @@ layers {
   }
 }
 layers {
-  bottom: "cccp8"
-  top: "cccp8"
+  bottom: "cccp8-1024"
+  top: "cccp8-1024"
   name: "relu12"
   type: RELU
 }
 layers {
-  bottom: "cccp8"
+  bottom: "cccp8-1024"
   top: "pool4"
   name: "pool4"
   type: POOLING

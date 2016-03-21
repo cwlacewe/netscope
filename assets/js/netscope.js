@@ -1,4 +1,159 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Analyzer;
+
+module.exports = Analyzer = (function() {
+  function Analyzer() {}
+
+  Analyzer.prototype.analyze = function(net) {
+    var d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, layertype, len, len1, len2, mode, n, numout, p, pad, pad_h, pad_w, parent, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, size, stride, stride_h, stride_w;
+    ref = net.nodes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      n = ref[i];
+      d = n.analysis;
+      d.wIn = d.hIn = d.wOut = d.hOut = 0;
+      d.chIn = d.chOut = 0;
+      layertype = n.type.toUpperCase();
+      parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
+      switch (layertype) {
+        case "DATA":
+          if ((n.attribs.input_param != null)) {
+            d.chIn = n.attribs.input_param.shape.dim[1];
+            d.wIn = n.attribs.input_param.shape.dim[2];
+            d.hIn = n.attribs.input_param.shape.dim[3];
+          } else if ((((ref2 = n.attribs.transform_param) != null ? ref2.crop_size : void 0) != null)) {
+            d.wIn = d.hIn = n.attribs.transform_param.crop_size;
+            d.chIn = 3;
+          } else {
+            onerror('Unknown Input Dimensions');
+            debugger;
+          }
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn;
+          break;
+        case "CONVOLUTION":
+          kernel_w = (ref3 = n.attribs.convolution_param.kernel_w) != null ? ref3 : n.attribs.convolution_param.kernel_size;
+          kernel_h = (ref4 = n.attribs.convolution_param.kernel_h) != null ? ref4 : n.attribs.convolution_param.kernel_size;
+          stride_w = (ref5 = n.attribs.convolution_param.stride_w) != null ? ref5 : (ref6 = n.attribs.convolution_param.stride) != null ? ref6 : 1;
+          stride_h = (ref7 = n.attribs.convolution_param.stride_h) != null ? ref7 : (ref8 = n.attribs.convolution_param.stride) != null ? ref8 : 1;
+          pad_w = (ref9 = n.attribs.convolution_param.pad_w) != null ? ref9 : (ref10 = n.attribs.convolution_param.pad) != null ? ref10 : 0;
+          pad_h = (ref11 = n.attribs.convolution_param.pad_h) != null ? ref11 : (ref12 = n.attribs.convolution_param.pad) != null ? ref12 : 0;
+          numout = n.attribs.convolution_param.num_output;
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
+          d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
+          d.chIn = parent.chOut;
+          d.chOut = numout;
+          break;
+        case "INNERPRODUCT":
+        case "INNER_PRODUCT":
+          numout = n.attribs.inner_product_param.num_output;
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = 1;
+          d.hOut = 1;
+          d.chIn = parent.chOut;
+          d.chOut = numout;
+          break;
+        case "POOLING":
+          kernel = n.attribs.pooling_param.kernel_size;
+          stride = (ref13 = n.attribs.pooling_param.stride) != null ? ref13 : 1;
+          pad = (ref14 = n.attribs.pooling_param.pad) != null ? ref14 : 0;
+          isglobal = (ref15 = n.attribs.pooling_param.global_pooling) != null ? ref15 : 0;
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          if (isglobal) {
+            d.wOut = d.hOut = 1;
+          } else {
+            d.wOut = Math.ceil((d.wIn + 2 * pad - kernel) / stride) + 1;
+            d.hOut = Math.ceil((d.hIn + 2 * pad - kernel) / stride) + 1;
+          }
+          d.chOut = d.chIn = parent.chOut;
+          break;
+        case "BATCHNORM":
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn = parent.chOut;
+          break;
+        case "LRN":
+          mode = (ref16 = n.attribs.lrn_param.norm_region) != null ? ref16 : 'ACROSS_CHANNELS';
+          size = n.attribs.lrn_param.local_size;
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn = parent.chOut;
+          break;
+        case "CONCAT":
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          ref17 = n.parents;
+          for (j = 0, len1 = ref17.length; j < len1; j++) {
+            p = ref17[j];
+            d.chIn += p.analysis.chOut;
+          }
+          d.chOut = d.chIn;
+          ref18 = n.parents;
+          for (k = 0, len2 = ref18.length; k < len2; k++) {
+            p = ref18[k];
+            failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
+          }
+          if (failed) {
+            window.onerror('CONCAT: input dimensions dont agree!');
+          }
+          break;
+        case "RELU":
+        case "DROPOUT":
+        case "SOFTMAX":
+        case "SOFTMAXWITHLOSS":
+        case "SOFTMAX_LOSS":
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn = parent.chOut;
+          break;
+        case "FLATTEN":
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.chIn = parent.chOut;
+          d.wOut = d.hOut = 1;
+          d.chOut = d.chIn * d.wIn * d.hIn;
+          break;
+        case "IMPLICIT":
+          d.wIn = d.hIn = 0;
+          d.chIn = 0;
+          d.wOut = d.hOut = 0;
+          d.chOut = 0;
+          break;
+        default:
+          onerror('Unknown Layer: ' + layertype);
+          console.log(n);
+          debugger;
+      }
+      if (layertype !== "RELU" && layertype !== "SOFTMAX" && layertype !== "SOFTMAXWITHLOSS" && layertype !== "SOFTMAX_LOSS") {
+        _.extend(n.attribs, {
+          analysis: {
+            "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
+            out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
+          }
+        });
+      }
+    }
+    return net;
+  };
+
+  return Analyzer;
+
+})();
+
+
+},{}],2:[function(require,module,exports){
 var AppController, Editor, Renderer,
   slice = [].slice;
 
@@ -88,13 +243,15 @@ module.exports = AppController = (function() {
 })();
 
 
-},{"./editor.coffee":4,"./renderer.coffee":8}],2:[function(require,module,exports){
-var CaffeParser, Network, Parser, analyzeNetwork, generateLayers, generateNetwork,
+},{"./editor.coffee":5,"./renderer.coffee":9}],3:[function(require,module,exports){
+var Analyzer, CaffeParser, Network, Parser, generateLayers, generateNetwork,
   hasProp = {}.hasOwnProperty;
 
 Parser = require('./parser');
 
 Network = require('../network.coffee');
+
+Analyzer = require('../analyzer.coffee');
 
 generateLayers = function(descriptors, phase) {
   var entry, headerKeys, j, layer, layerDesc, layers, len;
@@ -123,152 +280,8 @@ generateLayers = function(descriptors, phase) {
   return layers;
 };
 
-analyzeNetwork = function(net) {
-  var d, failed, isglobal, j, kernel, kernel_h, kernel_w, l, layertype, len, len1, len2, m, mode, n, numout, p, pad, pad_h, pad_w, parent, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, size, stride, stride_h, stride_w;
-  ref = net.nodes;
-  for (j = 0, len = ref.length; j < len; j++) {
-    n = ref[j];
-    d = n.analysis;
-    d.wIn = d.hIn = d.wOut = d.hOut = 0;
-    d.chIn = d.chOut = 0;
-    layertype = n.type.toUpperCase();
-    parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
-    switch (layertype) {
-      case "DATA":
-        if ((n.attribs.input_param != null)) {
-          d.chIn = n.attribs.input_param.shape.dim[1];
-          d.wIn = n.attribs.input_param.shape.dim[2];
-          d.hIn = n.attribs.input_param.shape.dim[3];
-        } else if ((((ref2 = n.attribs.transform_param) != null ? ref2.crop_size : void 0) != null)) {
-          d.wIn = d.hIn = n.attribs.transform_param.crop_size;
-          d.chIn = 3;
-        } else {
-          onerror('Unknown Input Dimensions');
-          debugger;
-        }
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
-        d.chOut = d.chIn;
-        break;
-      case "CONVOLUTION":
-        kernel_w = (ref3 = n.attribs.convolution_param.kernel_w) != null ? ref3 : n.attribs.convolution_param.kernel_size;
-        kernel_h = (ref4 = n.attribs.convolution_param.kernel_h) != null ? ref4 : n.attribs.convolution_param.kernel_size;
-        stride_w = (ref5 = n.attribs.convolution_param.stride_w) != null ? ref5 : (ref6 = n.attribs.convolution_param.stride) != null ? ref6 : 1;
-        stride_h = (ref7 = n.attribs.convolution_param.stride_h) != null ? ref7 : (ref8 = n.attribs.convolution_param.stride) != null ? ref8 : 1;
-        pad_w = (ref9 = n.attribs.convolution_param.pad_w) != null ? ref9 : (ref10 = n.attribs.convolution_param.pad) != null ? ref10 : 0;
-        pad_h = (ref11 = n.attribs.convolution_param.pad_h) != null ? ref11 : (ref12 = n.attribs.convolution_param.pad) != null ? ref12 : 0;
-        numout = n.attribs.convolution_param.num_output;
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
-        d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
-        d.chIn = parent.chOut;
-        d.chOut = numout;
-        break;
-      case "INNERPRODUCT":
-      case "INNER_PRODUCT":
-        numout = n.attribs.inner_product_param.num_output;
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.wOut = 1;
-        d.hOut = 1;
-        d.chIn = parent.chOut;
-        d.chOut = numout;
-        break;
-      case "POOLING":
-        kernel = n.attribs.pooling_param.kernel_size;
-        stride = (ref13 = n.attribs.pooling_param.stride) != null ? ref13 : 1;
-        pad = (ref14 = n.attribs.pooling_param.pad) != null ? ref14 : 0;
-        isglobal = (ref15 = n.attribs.pooling_param.global_pooling) != null ? ref15 : 0;
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        if (isglobal) {
-          d.wOut = d.hOut = 1;
-        } else {
-          d.wOut = Math.ceil((d.wIn + 2 * pad - kernel) / stride) + 1;
-          d.hOut = Math.ceil((d.hIn + 2 * pad - kernel) / stride) + 1;
-        }
-        d.chOut = d.chIn = parent.chOut;
-        break;
-      case "BATCHNORM":
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
-        d.chOut = d.chIn = parent.chOut;
-        break;
-      case "LRN":
-        mode = (ref16 = n.attribs.lrn_param.norm_region) != null ? ref16 : 'ACROSS_CHANNELS';
-        size = n.attribs.lrn_param.local_size;
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
-        d.chOut = d.chIn = parent.chOut;
-        break;
-      case "CONCAT":
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
-        ref17 = n.parents;
-        for (l = 0, len1 = ref17.length; l < len1; l++) {
-          p = ref17[l];
-          d.chIn += p.analysis.chOut;
-        }
-        d.chOut = d.chIn;
-        ref18 = n.parents;
-        for (m = 0, len2 = ref18.length; m < len2; m++) {
-          p = ref18[m];
-          failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
-        }
-        if (failed) {
-          window.onerror('CONCAT: input dimensions dont agree!');
-        }
-        break;
-      case "RELU":
-      case "DROPOUT":
-      case "SOFTMAX":
-      case "SOFTMAXWITHLOSS":
-      case "SOFTMAX_LOSS":
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
-        d.chOut = d.chIn = parent.chOut;
-        break;
-      case "FLATTEN":
-        d.wIn = parent.wOut;
-        d.hIn = parent.hOut;
-        d.chIn = parent.chOut;
-        d.wOut = d.hOut = 1;
-        d.chOut = d.chIn * d.wIn * d.hIn;
-        break;
-      case "IMPLICIT":
-        d.wIn = d.hIn = 0;
-        d.chIn = 0;
-        d.wOut = d.hOut = 0;
-        d.chOut = 0;
-        break;
-      default:
-        onerror('Unknown Layer: ' + layertype);
-        console.log(n);
-        debugger;
-    }
-    if (layertype !== "RELU" && layertype !== "SOFTMAX" && layertype !== "SOFTMAXWITHLOSS" && layertype !== "SOFTMAX_LOSS") {
-      _.extend(n.attribs, {
-        analysis: {
-          "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
-          out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
-        }
-      });
-    }
-  }
-  return net;
-};
-
 generateNetwork = function(layers, header) {
-  var children, curNode, dataNode, dims, getNodes, getSingleNode, i, implicitLayers, inplaceChild, inplaceOps, inplaceTable, input, inputs, j, k, l, layer, len, len1, len2, len3, m, net, node, nodeTable, o;
+  var children, curNode, dataNode, dims, getNodes, getSingleNode, i, implicitLayers, inplaceChild, inplaceOps, inplaceTable, input, inputs, j, k, l, layer, len, len1, len2, len3, m, n, net, node, nodeTable;
   nodeTable = {};
   implicitLayers = [];
   net = new Network(header.name);
@@ -333,7 +346,7 @@ generateNetwork = function(layers, header) {
     inputs = [].concat(header.input);
     dims = header.input_dim;
     if (inputs.length === (dims.length * 0.25)) {
-      for (i = o = 0, len3 = inputs.length; o < len3; i = ++o) {
+      for (i = n = 0, len3 = inputs.length; n < len3; i = ++n) {
         input = inputs[i];
         dataNode = nodeTable[input];
         dataNode.type = 'data';
@@ -350,11 +363,12 @@ module.exports = CaffeParser = (function() {
   function CaffeParser() {}
 
   CaffeParser.parse = function(txt, phase) {
-    var header, layerDesc, layers, network, ref;
+    var NetworkAnalyzer, header, layerDesc, layers, network, ref;
     ref = Parser.parse(txt), header = ref[0], layerDesc = ref[1];
     layers = generateLayers(layerDesc, phase);
     network = generateNetwork(layers, header);
-    network = analyzeNetwork(network);
+    NetworkAnalyzer = new Analyzer();
+    network = NetworkAnalyzer.analyze(network);
     return network;
   };
 
@@ -363,7 +377,7 @@ module.exports = CaffeParser = (function() {
 })();
 
 
-},{"../network.coffee":7,"./parser":3}],3:[function(require,module,exports){
+},{"../analyzer.coffee":1,"../network.coffee":8,"./parser":4}],4:[function(require,module,exports){
 module.exports = (function() {
   "use strict";
 
@@ -2036,7 +2050,7 @@ module.exports = (function() {
   };
 })();
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var Editor;
 
 module.exports = Editor = (function() {
@@ -2072,7 +2086,7 @@ module.exports = Editor = (function() {
 })();
 
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var Loader,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -2141,7 +2155,7 @@ module.exports = Loader = (function() {
 })();
 
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var AppController, CaffeNetwork, Loader, showDocumentation,
   slice = [].slice;
 
@@ -2186,7 +2200,7 @@ $(document).ready(function() {
 });
 
 
-},{"./app.coffee":1,"./caffe/caffe.coffee":2,"./loader.coffee":5}],7:[function(require,module,exports){
+},{"./app.coffee":2,"./caffe/caffe.coffee":3,"./loader.coffee":6}],8:[function(require,module,exports){
 var Network, Node,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -2315,7 +2329,7 @@ module.exports = Network = (function() {
 })();
 
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var Renderer, Tableify,
   hasProp = {}.hasOwnProperty;
 
@@ -2612,7 +2626,7 @@ module.exports = Renderer = (function() {
 })();
 
 
-},{"tableify":9,"tablesorter":10}],9:[function(require,module,exports){
+},{"tableify":10,"tablesorter":11}],10:[function(require,module,exports){
 "use strict";
 
 module.exports = tableify;
@@ -2724,7 +2738,7 @@ function getClass(obj) {
         ;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*! tablesorter (FORK) - updated 03-18-2016 (v2.25.6)*/
 /* Includes widgets ( storage,uitheme,columns,filter,stickyHeaders,resizable,saveSort ) */
 (function(factory) {
@@ -8384,7 +8398,7 @@ function getClass(obj) {
 return $.tablesorter;
 }));
 
-},{"jquery":11}],11:[function(require,module,exports){
+},{"jquery":12}],12:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.2.2
  * http://jquery.com/
@@ -18228,4 +18242,4 @@ if ( !noGlobal ) {
 return jQuery;
 }));
 
-},{}]},{},[6]);
+},{}]},{},[7]);
