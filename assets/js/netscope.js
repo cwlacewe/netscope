@@ -124,86 +124,143 @@ generateLayers = function(descriptors, phase) {
 };
 
 analyzeNetwork = function(net) {
-  var d, dims_ok, isglobal, j, kernel, l, layertype, len, len1, len2, m, n, numout, p, pad, prev, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, stride;
+  var d, failed, isglobal, j, kernel, kernel_h, kernel_w, l, layertype, len, len1, len2, m, mode, n, numout, p, pad, pad_h, pad_w, parent, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref3, ref4, ref5, ref6, ref7, ref8, ref9, size, stride, stride_h, stride_w;
   ref = net.nodes;
   for (j = 0, len = ref.length; j < len; j++) {
     n = ref[j];
-    d = n.dim;
+    d = n.analysis;
     d.wIn = d.hIn = d.wOut = d.hOut = 0;
-    d.featIn = d.featOut = 0;
-    prev = (ref1 = n.parents[0]) != null ? ref1.dim : void 0;
+    d.chIn = d.chOut = 0;
     layertype = n.type.toUpperCase();
+    parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
     switch (layertype) {
       case "DATA":
-        d.featIn = n.attribs.input_param.shape.dim[1];
-        d.featOut = d.featIn;
-        d.wIn = n.attribs.input_param.shape.dim[2];
-        d.hIn = n.attribs.input_param.shape.dim[3];
+        if ((n.attribs.input_param != null)) {
+          d.chIn = n.attribs.input_param.shape.dim[1];
+          d.wIn = n.attribs.input_param.shape.dim[2];
+          d.hIn = n.attribs.input_param.shape.dim[3];
+        } else if ((((ref2 = n.attribs.transform_param) != null ? ref2.crop_size : void 0) != null)) {
+          d.wIn = d.hIn = n.attribs.transform_param.crop_size;
+          d.chIn = 3;
+        } else {
+          onerror('Unknown Input Dimensions');
+          debugger;
+        }
         d.wOut = d.wIn;
         d.hOut = d.hIn;
+        d.chOut = d.chIn;
         break;
       case "CONVOLUTION":
-        kernel = n.attribs.convolution_param.kernel_size;
-        stride = (ref2 = n.attribs.convolution_param.stride) != null ? ref2 : 1;
-        pad = (ref3 = n.attribs.convolution_param.pad) != null ? ref3 : 0;
+        kernel_w = (ref3 = n.attribs.convolution_param.kernel_w) != null ? ref3 : n.attribs.convolution_param.kernel_size;
+        kernel_h = (ref4 = n.attribs.convolution_param.kernel_h) != null ? ref4 : n.attribs.convolution_param.kernel_size;
+        stride_w = (ref5 = n.attribs.convolution_param.stride_w) != null ? ref5 : (ref6 = n.attribs.convolution_param.stride) != null ? ref6 : 1;
+        stride_h = (ref7 = n.attribs.convolution_param.stride_h) != null ? ref7 : (ref8 = n.attribs.convolution_param.stride) != null ? ref8 : 1;
+        pad_w = (ref9 = n.attribs.convolution_param.pad_w) != null ? ref9 : (ref10 = n.attribs.convolution_param.pad) != null ? ref10 : 0;
+        pad_h = (ref11 = n.attribs.convolution_param.pad_h) != null ? ref11 : (ref12 = n.attribs.convolution_param.pad) != null ? ref12 : 0;
         numout = n.attribs.convolution_param.num_output;
-        d.wIn = prev.wOut;
-        d.hIn = prev.hOut;
-        d.wOut = (d.wIn + 2 * pad - kernel) / stride + 1;
-        d.hOut = (d.hIn + 2 * pad - kernel) / stride + 1;
-        d.featIn = prev.featOut;
-        d.featOut = numout;
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
+        d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
+        d.chIn = parent.chOut;
+        d.chOut = numout;
+        break;
+      case "INNERPRODUCT":
+        numout = n.attribs.inner_product_param.num_output;
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        d.wOut = d.wIn;
+        d.hOut = d.hIn;
+        d.chIn = parent.chOut;
+        d.chOut = numout;
         break;
       case "POOLING":
         kernel = n.attribs.pooling_param.kernel_size;
-        stride = (ref4 = n.attribs.pooling_param.stride) != null ? ref4 : 1;
-        pad = (ref5 = n.attribs.pooling_param.pad) != null ? ref5 : 0;
-        isglobal = (ref6 = n.attribs.pooling_param.global_pooling) != null ? ref6 : 0;
-        d.wIn = prev.wOut;
-        d.hIn = prev.hOut;
-        if (!isglobal) {
-          d.wOut = (d.wIn + 2 * pad - kernel) / stride + 1;
-          d.hOut = (d.hIn + 2 * pad - kernel) / stride + 1;
-        } else {
+        stride = (ref13 = n.attribs.pooling_param.stride) != null ? ref13 : 1;
+        pad = (ref14 = n.attribs.pooling_param.pad) != null ? ref14 : 0;
+        isglobal = (ref15 = n.attribs.pooling_param.global_pooling) != null ? ref15 : 0;
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        if (isglobal) {
           d.wOut = d.hOut = 1;
+        } else {
+          d.wOut = Math.ceil((d.wIn + 2 * pad - kernel) / stride) + 1;
+          d.hOut = Math.ceil((d.hIn + 2 * pad - kernel) / stride) + 1;
         }
-        d.featIn = prev.featOut;
-        d.featOut = d.featIn;
+        d.chOut = d.chIn = parent.chOut;
+        break;
+      case "BATCHNORM":
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        d.wOut = d.wIn;
+        d.hOut = d.hIn;
+        d.chOut = d.chIn = parent.chOut;
+        break;
+      case "LRN":
+        mode = (ref16 = n.attribs.lrn_param.norm_region) != null ? ref16 : 'ACROSS_CHANNELS';
+        size = n.attribs.lrn_param.local_size;
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        d.wOut = d.wIn;
+        d.hOut = d.hIn;
+        d.chOut = d.chIn = parent.chOut;
         break;
       case "CONCAT":
-        d.wIn = prev.wOut;
-        d.hIn = prev.hOut;
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
         d.wOut = d.wIn;
         d.hOut = d.hIn;
-        dims_ok = true;
-        ref7 = n.parents;
-        for (l = 0, len1 = ref7.length; l < len1; l++) {
-          p = ref7[l];
-          dims_ok = dims_ok && (p.dim.wOut === d.wIn & p.dim.hOut === d.hIn);
+        ref17 = n.parents;
+        for (l = 0, len1 = ref17.length; l < len1; l++) {
+          p = ref17[l];
+          d.chIn += p.analysis.chOut;
         }
-        if (!dims_ok) {
-          console.warn('CONCAT: input dimensions dont agree!');
+        d.chOut = d.chIn;
+        ref18 = n.parents;
+        for (m = 0, len2 = ref18.length; m < len2; m++) {
+          p = ref18[m];
+          failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
         }
-        ref8 = n.parents;
-        for (m = 0, len2 = ref8.length; m < len2; m++) {
-          p = ref8[m];
-          d.featIn += p.dim.featOut;
+        if (failed) {
+          window.onerror('CONCAT: input dimensions dont agree!');
         }
-        d.featOut = d.featIn;
+        break;
+      case "RELU":
+      case "DROPOUT":
+      case "SOFTMAX":
+      case "SOFTMAXWITHLOSS":
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        d.wOut = d.wIn;
+        d.hOut = d.hIn;
+        d.chOut = d.chIn = parent.chOut;
+        break;
+      case "FLATTEN":
+        d.wIn = parent.wOut;
+        d.hIn = parent.hOut;
+        d.chIn = parent.chOut;
+        d.wOut = d.hOut = 1;
+        d.chOut = d.chIn * d.wIn * d.hIn;
+        break;
+      case "IMPLICIT":
+        debugger;
+        d.wIn = (ref19 = parent != null ? parent.wOut : void 0) != null ? ref19 : 0;
+        d.hIn = (ref20 = parent != null ? parent.hOut : void 0) != null ? ref20 : 0;
+        d.wOut = 0;
+        d.hOut = 0;
+        d.chIn = parent != null ? parent.chOut : void 0;
+        d.chOut = 0;
         break;
       default:
-        d.wIn = prev != null ? prev.wOut : void 0;
-        d.hIn = prev != null ? prev.hOut : void 0;
-        d.wOut = d.wIn;
-        d.hOut = d.hIn;
-        d.featIn = prev != null ? prev.featOut : void 0;
-        d.featOut = d.featIn;
+        onerror('Unknown Layer: ' + layertype);
+        console.log(n);
+        debugger;
     }
     if (layertype !== "RELU" && layertype !== "SOFTMAX" && layertype !== "SOFTMAXWITHLOSS") {
       _.extend(n.attribs, {
         analysis: {
-          "in": d.featIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
-          out: d.featOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
+          "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
+          out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
         }
       });
     }
@@ -221,6 +278,7 @@ generateNetwork = function(layers, header) {
       var node;
       node = nodeTable[name];
       if (node == null) {
+        debugger;
         node = net.createNode(name, 'implicit');
         nodeTable[name] = node;
       }
@@ -2136,11 +2194,11 @@ var Network, Node,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 Node = (function() {
-  function Node(name, type1, attribs1, dim1) {
+  function Node(name, type1, attribs1, analysis1) {
     this.name = name;
     this.type = type1;
     this.attribs = attribs1 != null ? attribs1 : {};
-    this.dim = dim1 != null ? dim1 : {};
+    this.analysis = analysis1 != null ? analysis1 : {};
     this.detachChildren = bind(this.detachChildren, this);
     this.detachChild = bind(this.detachChild, this);
     this.addParents = bind(this.addParents, this);
@@ -2208,9 +2266,9 @@ module.exports = Network = (function() {
     this.nodes = [];
   }
 
-  Network.prototype.createNode = function(label, type, attribs, dim) {
+  Network.prototype.createNode = function(label, type, attribs, analysis) {
     var node;
-    node = new Node(label, type, attribs, dim);
+    node = new Node(label, type, attribs, analysis);
     this.nodes.push(node);
     return node;
   };
@@ -2260,10 +2318,10 @@ module.exports = Network = (function() {
 
 
 },{}],8:[function(require,module,exports){
-var Renderer, tableify,
+var Renderer, Tableify,
   hasProp = {}.hasOwnProperty;
 
-tableify = require('tableify');
+Tableify = require('tableify');
 
 require('tablesorter');
 
@@ -2348,10 +2406,10 @@ module.exports = Renderer = (function() {
         ID: id,
         name: n.name,
         type: n.type,
-        ch_in: n.dim.featIn,
-        dim_in: n.dim.wIn + 'x' + n.dim.hIn,
-        ch_out: n.dim.featOut,
-        dim_out: n.dim.wOut + 'x' + n.dim.hOut
+        ch_in: n.analysis.chIn,
+        dim_in: n.analysis.wIn + 'x' + n.analysis.hIn,
+        ch_out: n.analysis.chOut,
+        dim_out: n.analysis.wOut + 'x' + n.analysis.hOut
       };
       tbl.push(entry);
     }
@@ -2359,23 +2417,25 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.summarizeTable = function(tbl) {
-    var entry, i, len, n, submodule, summary;
+    var entry, i, len, n, num_subs, slashindex, summary;
     entry = {
       name: 'start'
     };
     summary = [];
+    num_subs = 0;
     for (i = 0, len = tbl.length; i < len; i++) {
       n = tbl[i];
-      submodule = n.name.indexOf('/');
-      if (submodule > 0 && entry.name.substring(0, submodule) === n.name.substring(0, submodule)) {
-        entry.ID += '.';
-        entry.name = n.name.substring(0, submodule);
-        entry.type = 'submodule';
+      slashindex = n.name.indexOf('/');
+      if (slashindex > 0 && entry.name.substring(0, slashindex) === n.name.substring(0, slashindex)) {
+        num_subs++;
+        entry.name = n.name.substring(0, slashindex);
+        entry.type = 'submodule(' + num_subs + ')';
         entry.ch_out = n.ch_out;
         entry.dim_out = n.dim_out;
         summary.pop();
         summary.push(entry);
       } else {
+        num_subs = 0;
         entry = {
           ID: n.ID,
           name: n.name,
@@ -2395,7 +2455,7 @@ module.exports = Renderer = (function() {
     var summary, tbl;
     tbl = this.generateTable();
     summary = this.summarizeTable(tbl);
-    $(this.table).html('<h3>Summary:</h3>' + tableify(summary) + '<h3>Details:</h3>' + tableify(tbl));
+    $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(tbl));
     return $(this.table + ' table').tablesorter();
   };
 
@@ -2435,7 +2495,7 @@ module.exports = Renderer = (function() {
 
   Renderer.prototype.insertLink = function(src, dst) {
     var lbl;
-    lbl = src.dim.featOut + 'ch ⋅ ' + src.dim.wOut + '×' + src.dim.hOut;
+    lbl = src.analysis.chOut + 'ch ⋅ ' + src.analysis.wOut + '×' + src.analysis.hOut;
     return this.graph.setEdge(src.name, dst.name, {
       arrowhead: 'vee',
       label: lbl

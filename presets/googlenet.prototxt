@@ -1,10 +1,16 @@
 name: "GoogleNet"
-input: "data"
-input_shape {
-  dim: 10
-  dim: 3
-  dim: 224
-  dim: 224
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  input_param {
+      shape: {
+          dim: 10
+          dim: 3
+          dim: 227
+          dim: 227
+      }
+  }
 }
 layer {
   name: "conv1/7x7_s2"

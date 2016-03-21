@@ -1,4 +1,4 @@
-tableify = require('tableify')
+Tableify = require('tableify')
 require('tablesorter')
 
 module.exports =
@@ -54,10 +54,10 @@ class Renderer
                 ID: id
                 name: n.name
                 type: n.type
-                ch_in: n.dim.featIn
-                dim_in: n.dim.wIn+'x'+n.dim.hIn
-                ch_out: n.dim.featOut
-                dim_out: n.dim.wOut+'x'+n.dim.hOut
+                ch_in: n.analysis.chIn
+                dim_in: n.analysis.wIn+'x'+n.analysis.hIn
+                ch_out: n.analysis.chOut
+                dim_out: n.analysis.wOut+'x'+n.analysis.hOut
             }                
             tbl.push(entry)
         return tbl
@@ -65,17 +65,19 @@ class Renderer
     summarizeTable: (tbl) ->
         entry = {name: 'start'}
         summary = []
+        num_subs = 0
         for n in tbl
-            submodule = n.name.indexOf('/')
-            if (submodule>0 and entry.name.substring(0,submodule) == n.name.substring(0,submodule))
-                entry.ID += '.'
-                entry.name = n.name.substring(0,submodule)
-                entry.type = 'submodule'
+            slashindex = n.name.indexOf('/')
+            if (slashindex>0 and entry.name.substring(0,slashindex) == n.name.substring(0,slashindex))
+                num_subs++
+                entry.name = n.name.substring(0,slashindex)
+                entry.type = 'submodule('+num_subs+')'
                 entry.ch_out = n.ch_out
                 entry.dim_out = n.dim_out
                 summary.pop()
                 summary.push(entry)
              else
+                num_subs = 0
                 entry = {
                     ID: n.ID
                     name: n.name
@@ -91,8 +93,8 @@ class Renderer
     renderTable: ->
         tbl = @generateTable()
         summary = @summarizeTable(tbl)
-        $(@table).html('<h3>Summary:</h3>'+tableify(summary)+
-                       '<h3>Details:</h3>'+tableify(tbl));
+        $(@table).html('<h3>Summary:</h3>'+Tableify(summary)+
+                       '<h3>Details:</h3>'+Tableify(tbl));
         $(@table+' table').tablesorter()
         
 
@@ -122,7 +124,7 @@ class Renderer
             ''
 
     insertLink: (src, dst) ->
-        lbl = src.dim.featOut+'ch ⋅ '+src.dim.wOut+'×'+src.dim.hOut                       
+        lbl = src.analysis.chOut+'ch ⋅ '+src.analysis.wOut+'×'+src.analysis.hOut                       
         @graph.setEdge(src.name, dst.name,
            { arrowhead: 'vee', label: lbl } );
 
