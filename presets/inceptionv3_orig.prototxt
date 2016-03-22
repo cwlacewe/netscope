@@ -59,12 +59,12 @@ layer {
   name: "conv_conv2d_relu"
   type: "ReLU"
   bottom: "conv_conv2d_bn"
-  top: "conv_conv2d_bn"
+  top: "conv_conv2d_relu"
 }
 layer {
   name: "conv_1_1/conv2d"
   type: "Convolution"
-  bottom: "conv_conv2d_bn"
+  bottom: "conv_conv2d_relu"
   top: "conv_1_1/conv2d"
   convolution_param {
     bias_term: false
@@ -101,12 +101,12 @@ layer {
   name: "conv_1_1/conv2d_relu"
   type: "ReLU"
   bottom: "conv_1_1/conv2d_bn"
-  top: "conv_1_1/conv2d_bn"
+  top: "conv_1_1/conv2d_relu"
 }
 layer {
   name: "conv_2_2/conv2d"
   type: "Convolution"
-  bottom: "conv_1_1/conv2d_bn"
+  bottom: "conv_1_1/conv2d_relu"
   top: "conv_2_2/conv2d"
   convolution_param {
     bias_term: false
@@ -143,12 +143,12 @@ layer {
   name: "conv_2_2/conv2d_relu"
   type: "ReLU"
   bottom: "conv_2_2/conv2d_bn"
-  top: "conv_2_2/conv2d_bn"
+  top: "conv_2_2/conv2d_relu"
 }
 layer {
   name: "pool"
   type: "Pooling"
-  bottom: "conv_2_2/conv2d_bn"
+  bottom: "conv_2_2/conv2d_relu"
   top: "pool"
   pooling_param {
     pool: MAX
@@ -197,12 +197,12 @@ layer {
   name: "conv_3_3/conv2d_relu"
   type: "ReLU"
   bottom: "conv_3_3/conv2d_bn"
-  top: "conv_3_3/conv2d_bn"
+  top: "conv_3_3/conv2d_relu"
 }
 layer {
   name: "conv_4_4/conv2d"
   type: "Convolution"
-  bottom: "conv_3_3/conv2d_bn"
+  bottom: "conv_3_3/conv2d_relu"
   top: "conv_4_4/conv2d"
   convolution_param {
     bias_term: false
@@ -239,12 +239,12 @@ layer {
   name: "conv_4_4/conv2d_relu"
   type: "ReLU"
   bottom: "conv_4_4/conv2d_bn"
-  top: "conv_4_4/conv2d_bn"
+  top: "conv_4_4/conv2d_relu"
 }
 layer {
   name: "pool1"
   type: "Pooling"
-  bottom: "conv_4_4/conv2d_bn"
+  bottom: "conv_4_4/conv2d_relu"
   top: "pool1"
   pooling_param {
     pool: MAX
@@ -293,7 +293,7 @@ layer {
   name: "mixed_conv/conv2d_relu"
   type: "ReLU"
   bottom: "mixed_conv/conv2d_bn"
-  top: "mixed_conv/conv2d_bn"
+  top: "mixed_conv/conv2d_relu"
 }
 layer {
   name: "mixed_tower/conv_conv2d"
@@ -335,12 +335,12 @@ layer {
   name: "mixed_tower/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_tower/conv_conv2d_bn"
-  top: "mixed_tower/conv_conv2d_bn"
+  top: "mixed_tower/conv_conv2d_relu"
 }
 layer {
   name: "mixed_tower/conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_tower/conv_conv2d_bn"
+  bottom: "mixed_tower/conv_conv2d_relu"
   top: "mixed_tower/conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -377,7 +377,7 @@ layer {
   name: "mixed_tower/conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_tower/conv_1_conv2d_bn"
-  top: "mixed_tower/conv_1_conv2d_bn"
+  top: "mixed_tower/conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_tower/1_conv_conv2d"
@@ -419,12 +419,12 @@ layer {
   name: "mixed_tower/1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_tower/1_conv_conv2d_bn"
-  top: "mixed_tower/1_conv_conv2d_bn"
+  top: "mixed_tower/1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_tower/1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_tower/1_conv_conv2d_bn"
+  bottom: "mixed_tower/1_conv_conv2d_relu"
   top: "mixed_tower/1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -461,12 +461,12 @@ layer {
   name: "mixed_tower/1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_tower/1_conv_1_conv2d_bn"
-  top: "mixed_tower/1_conv_1_conv2d_bn"
+  top: "mixed_tower/1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_tower/1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_tower/1_conv_1_conv2d_bn"
+  bottom: "mixed_tower/1_conv_1_conv2d_relu"
   top: "mixed_tower/1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -503,7 +503,7 @@ layer {
   name: "mixed_tower/1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_tower/1_conv_2_conv2d_bn"
-  top: "mixed_tower/1_conv_2_conv2d_bn"
+  top: "mixed_tower/1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_tower/AVG_pool"
@@ -557,14 +557,14 @@ layer {
   name: "mixed_tower/2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_tower/2_conv_conv2d_bn"
-  top: "mixed_tower/2_conv_conv2d_bn"
+  top: "mixed_tower/2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_tower/chconcat"
-  bottom: "mixed_conv/conv2d_bn"
-  bottom: "mixed_tower/conv_1_conv2d_bn"
-  bottom: "mixed_tower/1_conv_2_conv2d_bn"
-  bottom: "mixed_tower/2_conv_conv2d_bn"
+  bottom: "mixed_conv/conv2d_relu"
+  bottom: "mixed_tower/conv_1_conv2d_relu"
+  bottom: "mixed_tower/1_conv_2_conv2d_relu"
+  bottom: "mixed_tower/2_conv_conv2d_relu"
   top: "mixed_tower/chconcat"
   type: "Concat"
   concat_param {
@@ -611,7 +611,7 @@ layer {
   name: "mixed_1/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/conv_conv2d_bn"
-  top: "mixed_1/conv_conv2d_bn"
+  top: "mixed_1/conv_conv2d_relu"
 }
 layer {
   name: "mixed_1/tower_conv_conv2d"
@@ -653,12 +653,12 @@ layer {
   name: "mixed_1/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/tower_conv_conv2d_bn"
-  top: "mixed_1/tower_conv_conv2d_bn"
+  top: "mixed_1/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_1/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_1/tower_conv_conv2d_bn"
+  bottom: "mixed_1/tower_conv_conv2d_relu"
   top: "mixed_1/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -695,7 +695,7 @@ layer {
   name: "mixed_1/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/tower_conv_1_conv2d_bn"
-  top: "mixed_1/tower_conv_1_conv2d_bn"
+  top: "mixed_1/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_1/tower_1_conv_conv2d"
@@ -737,12 +737,12 @@ layer {
   name: "mixed_1/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/tower_1_conv_conv2d_bn"
-  top: "mixed_1/tower_1_conv_conv2d_bn"
+  top: "mixed_1/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_1/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_1/tower_1_conv_conv2d_bn"
+  bottom: "mixed_1/tower_1_conv_conv2d_relu"
   top: "mixed_1/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -779,12 +779,12 @@ layer {
   name: "mixed_1/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/tower_1_conv_1_conv2d_bn"
-  top: "mixed_1/tower_1_conv_1_conv2d_bn"
+  top: "mixed_1/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_1/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_1/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_1/tower_1_conv_1_conv2d_relu"
   top: "mixed_1/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -821,7 +821,7 @@ layer {
   name: "mixed_1/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/tower_1_conv_2_conv2d_bn"
-  top: "mixed_1/tower_1_conv_2_conv2d_bn"
+  top: "mixed_1/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_1/tower_2_AVG_pool"
@@ -875,14 +875,14 @@ layer {
   name: "mixed_1/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_1/tower_2_conv_conv2d_bn"
-  top: "mixed_1/tower_2_conv_conv2d_bn"
+  top: "mixed_1/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_1/chconcat"
-  bottom: "mixed_1/conv_conv2d_bn"
-bottom: "mixed_1/tower_conv_1_conv2d_bn"
-bottom: "mixed_1/tower_1_conv_2_conv2d_bn"
-bottom: "mixed_1/tower_2_conv_conv2d_bn"
+  bottom: "mixed_1/conv_conv2d_relu"
+bottom: "mixed_1/tower_conv_1_conv2d_relu"
+bottom: "mixed_1/tower_1_conv_2_conv2d_relu"
+bottom: "mixed_1/tower_2_conv_conv2d_relu"
 
   top: "mixed_1/chconcat"
   type: "Concat"
@@ -930,7 +930,7 @@ layer {
   name: "mixed_2/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/conv_conv2d_bn"
-  top: "mixed_2/conv_conv2d_bn"
+  top: "mixed_2/conv_conv2d_relu"
 }
 layer {
   name: "mixed_2/tower_conv_conv2d"
@@ -972,12 +972,12 @@ layer {
   name: "mixed_2/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/tower_conv_conv2d_bn"
-  top: "mixed_2/tower_conv_conv2d_bn"
+  top: "mixed_2/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_2/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_2/tower_conv_conv2d_bn"
+  bottom: "mixed_2/tower_conv_conv2d_relu"
   top: "mixed_2/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -1014,7 +1014,7 @@ layer {
   name: "mixed_2/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/tower_conv_1_conv2d_bn"
-  top: "mixed_2/tower_conv_1_conv2d_bn"
+  top: "mixed_2/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_2/tower_1_conv_conv2d"
@@ -1056,12 +1056,12 @@ layer {
   name: "mixed_2/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/tower_1_conv_conv2d_bn"
-  top: "mixed_2/tower_1_conv_conv2d_bn"
+  top: "mixed_2/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_2/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_2/tower_1_conv_conv2d_bn"
+  bottom: "mixed_2/tower_1_conv_conv2d_relu"
   top: "mixed_2/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -1098,12 +1098,12 @@ layer {
   name: "mixed_2/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/tower_1_conv_1_conv2d_bn"
-  top: "mixed_2/tower_1_conv_1_conv2d_bn"
+  top: "mixed_2/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_2/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_2/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_2/tower_1_conv_1_conv2d_relu"
   top: "mixed_2/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -1140,7 +1140,7 @@ layer {
   name: "mixed_2/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/tower_1_conv_2_conv2d_bn"
-  top: "mixed_2/tower_1_conv_2_conv2d_bn"
+  top: "mixed_2/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_2/tower_2_AVG_pool"
@@ -1194,14 +1194,14 @@ layer {
   name: "mixed_2/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_2/tower_2_conv_conv2d_bn"
-  top: "mixed_2/tower_2_conv_conv2d_bn"
+  top: "mixed_2/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_2/chconcat"
-  bottom: "mixed_2/conv_conv2d_bn"
-bottom: "mixed_2/tower_conv_1_conv2d_bn"
-bottom: "mixed_2/tower_1_conv_2_conv2d_bn"
-bottom: "mixed_2/tower_2_conv_conv2d_bn"
+  bottom: "mixed_2/conv_conv2d_relu"
+bottom: "mixed_2/tower_conv_1_conv2d_relu"
+bottom: "mixed_2/tower_1_conv_2_conv2d_relu"
+bottom: "mixed_2/tower_2_conv_conv2d_relu"
 
   top: "mixed_2/chconcat"
   type: "Concat"
@@ -1249,7 +1249,7 @@ layer {
   name: "mixed_3/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_3/conv_conv2d_bn"
-  top: "mixed_3/conv_conv2d_bn"
+  top: "mixed_3/conv_conv2d_relu"
 }
 layer {
   name: "mixed_3/tower_conv_conv2d"
@@ -1291,12 +1291,12 @@ layer {
   name: "mixed_3/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_3/tower_conv_conv2d_bn"
-  top: "mixed_3/tower_conv_conv2d_bn"
+  top: "mixed_3/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_3/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_3/tower_conv_conv2d_bn"
+  bottom: "mixed_3/tower_conv_conv2d_relu"
   top: "mixed_3/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -1333,12 +1333,12 @@ layer {
   name: "mixed_3/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_3/tower_conv_1_conv2d_bn"
-  top: "mixed_3/tower_conv_1_conv2d_bn"
+  top: "mixed_3/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_3/tower_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_3/tower_conv_1_conv2d_bn"
+  bottom: "mixed_3/tower_conv_1_conv2d_relu"
   top: "mixed_3/tower_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -1375,7 +1375,7 @@ layer {
   name: "mixed_3/tower_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_3/tower_conv_2_conv2d_bn"
-  top: "mixed_3/tower_conv_2_conv2d_bn"
+  top: "mixed_3/tower_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_3/max_pool"
@@ -1392,8 +1392,8 @@ layer {
 layer {
   name: "mixed_3/chconcat"
   bottom: "mixed_3/max_pool"
-bottom: "mixed_3/conv_conv2d_bn"
-bottom: "mixed_3/tower_conv_2_conv2d_bn"
+bottom: "mixed_3/conv_conv2d_relu"
+bottom: "mixed_3/tower_conv_2_conv2d_relu"
 
   top: "mixed_3/chconcat"
   type: "Concat"
@@ -1441,7 +1441,7 @@ layer {
   name: "mixed_4/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/conv_conv2d_bn"
-  top: "mixed_4/conv_conv2d_bn"
+  top: "mixed_4/conv_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_conv_conv2d"
@@ -1483,12 +1483,12 @@ layer {
   name: "mixed_4/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_conv_conv2d_bn"
-  top: "mixed_4/tower_conv_conv2d_bn"
+  top: "mixed_4/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_4/tower_conv_conv2d_bn"
+  bottom: "mixed_4/tower_conv_conv2d_relu"
   top: "mixed_4/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -1527,12 +1527,12 @@ layer {
   name: "mixed_4/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_conv_1_conv2d_bn"
-  top: "mixed_4/tower_conv_1_conv2d_bn"
+  top: "mixed_4/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_4/tower_conv_1_conv2d_bn"
+  bottom: "mixed_4/tower_conv_1_conv2d_relu"
   top: "mixed_4/tower_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -1571,7 +1571,7 @@ layer {
   name: "mixed_4/tower_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_conv_2_conv2d_bn"
-  top: "mixed_4/tower_conv_2_conv2d_bn"
+  top: "mixed_4/tower_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_1_conv_conv2d"
@@ -1613,12 +1613,12 @@ layer {
   name: "mixed_4/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_1_conv_conv2d_bn"
-  top: "mixed_4/tower_1_conv_conv2d_bn"
+  top: "mixed_4/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_4/tower_1_conv_conv2d_bn"
+  bottom: "mixed_4/tower_1_conv_conv2d_relu"
   top: "mixed_4/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -1657,12 +1657,12 @@ layer {
   name: "mixed_4/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_1_conv_1_conv2d_bn"
-  top: "mixed_4/tower_1_conv_1_conv2d_bn"
+  top: "mixed_4/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_4/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_4/tower_1_conv_1_conv2d_relu"
   top: "mixed_4/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -1701,12 +1701,12 @@ layer {
   name: "mixed_4/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_1_conv_2_conv2d_bn"
-  top: "mixed_4/tower_1_conv_2_conv2d_bn"
+  top: "mixed_4/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_1_conv_3_conv2d"
   type: "Convolution"
-  bottom: "mixed_4/tower_1_conv_2_conv2d_bn"
+  bottom: "mixed_4/tower_1_conv_2_conv2d_relu"
   top: "mixed_4/tower_1_conv_3_conv2d"
   convolution_param {
     bias_term: false
@@ -1745,12 +1745,12 @@ layer {
   name: "mixed_4/tower_1_conv_3_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_1_conv_3_conv2d_bn"
-  top: "mixed_4/tower_1_conv_3_conv2d_bn"
+  top: "mixed_4/tower_1_conv_3_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_1_conv_4_conv2d"
   type: "Convolution"
-  bottom: "mixed_4/tower_1_conv_3_conv2d_bn"
+  bottom: "mixed_4/tower_1_conv_3_conv2d_relu"
   top: "mixed_4/tower_1_conv_4_conv2d"
   convolution_param {
     bias_term: false
@@ -1789,7 +1789,7 @@ layer {
   name: "mixed_4/tower_1_conv_4_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_1_conv_4_conv2d_bn"
-  top: "mixed_4/tower_1_conv_4_conv2d_bn"
+  top: "mixed_4/tower_1_conv_4_conv2d_relu"
 }
 layer {
   name: "mixed_4/tower_2_AVG_pool"
@@ -1843,14 +1843,14 @@ layer {
   name: "mixed_4/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_4/tower_2_conv_conv2d_bn"
-  top: "mixed_4/tower_2_conv_conv2d_bn"
+  top: "mixed_4/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_4/chconcat"
-  bottom: "mixed_4/conv_conv2d_bn"
-bottom: "mixed_4/tower_conv_2_conv2d_bn"
-bottom: "mixed_4/tower_1_conv_4_conv2d_bn"
-bottom: "mixed_4/tower_2_conv_conv2d_bn"
+  bottom: "mixed_4/conv_conv2d_relu"
+bottom: "mixed_4/tower_conv_2_conv2d_relu"
+bottom: "mixed_4/tower_1_conv_4_conv2d_relu"
+bottom: "mixed_4/tower_2_conv_conv2d_relu"
 
   top: "mixed_4/chconcat"
   type: "Concat"
@@ -1898,7 +1898,7 @@ layer {
   name: "mixed_5/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/conv_conv2d_bn"
-  top: "mixed_5/conv_conv2d_bn"
+  top: "mixed_5/conv_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_conv_conv2d"
@@ -1940,12 +1940,12 @@ layer {
   name: "mixed_5/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_conv_conv2d_bn"
-  top: "mixed_5/tower_conv_conv2d_bn"
+  top: "mixed_5/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_5/tower_conv_conv2d_bn"
+  bottom: "mixed_5/tower_conv_conv2d_relu"
   top: "mixed_5/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -1984,12 +1984,12 @@ layer {
   name: "mixed_5/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_conv_1_conv2d_bn"
-  top: "mixed_5/tower_conv_1_conv2d_bn"
+  top: "mixed_5/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_5/tower_conv_1_conv2d_bn"
+  bottom: "mixed_5/tower_conv_1_conv2d_relu"
   top: "mixed_5/tower_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -2028,7 +2028,7 @@ layer {
   name: "mixed_5/tower_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_conv_2_conv2d_bn"
-  top: "mixed_5/tower_conv_2_conv2d_bn"
+  top: "mixed_5/tower_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_1_conv_conv2d"
@@ -2070,12 +2070,12 @@ layer {
   name: "mixed_5/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_1_conv_conv2d_bn"
-  top: "mixed_5/tower_1_conv_conv2d_bn"
+  top: "mixed_5/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_5/tower_1_conv_conv2d_bn"
+  bottom: "mixed_5/tower_1_conv_conv2d_relu"
   top: "mixed_5/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -2114,12 +2114,12 @@ layer {
   name: "mixed_5/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_1_conv_1_conv2d_bn"
-  top: "mixed_5/tower_1_conv_1_conv2d_bn"
+  top: "mixed_5/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_5/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_5/tower_1_conv_1_conv2d_relu"
   top: "mixed_5/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -2158,12 +2158,12 @@ layer {
   name: "mixed_5/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_1_conv_2_conv2d_bn"
-  top: "mixed_5/tower_1_conv_2_conv2d_bn"
+  top: "mixed_5/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_1_conv_3_conv2d"
   type: "Convolution"
-  bottom: "mixed_5/tower_1_conv_2_conv2d_bn"
+  bottom: "mixed_5/tower_1_conv_2_conv2d_relu"
   top: "mixed_5/tower_1_conv_3_conv2d"
   convolution_param {
     bias_term: false
@@ -2202,12 +2202,12 @@ layer {
   name: "mixed_5/tower_1_conv_3_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_1_conv_3_conv2d_bn"
-  top: "mixed_5/tower_1_conv_3_conv2d_bn"
+  top: "mixed_5/tower_1_conv_3_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_1_conv_4_conv2d"
   type: "Convolution"
-  bottom: "mixed_5/tower_1_conv_3_conv2d_bn"
+  bottom: "mixed_5/tower_1_conv_3_conv2d_relu"
   top: "mixed_5/tower_1_conv_4_conv2d"
   convolution_param {
     bias_term: false
@@ -2246,7 +2246,7 @@ layer {
   name: "mixed_5/tower_1_conv_4_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_1_conv_4_conv2d_bn"
-  top: "mixed_5/tower_1_conv_4_conv2d_bn"
+  top: "mixed_5/tower_1_conv_4_conv2d_relu"
 }
 layer {
   name: "mixed_5/tower_2_AVG_pool"
@@ -2300,14 +2300,14 @@ layer {
   name: "mixed_5/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_5/tower_2_conv_conv2d_bn"
-  top: "mixed_5/tower_2_conv_conv2d_bn"
+  top: "mixed_5/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_5/chconcat"
-  bottom: "mixed_5/conv_conv2d_bn"
-bottom: "mixed_5/tower_conv_2_conv2d_bn"
-bottom: "mixed_5/tower_1_conv_4_conv2d_bn"
-bottom: "mixed_5/tower_2_conv_conv2d_bn"
+  bottom: "mixed_5/conv_conv2d_relu"
+bottom: "mixed_5/tower_conv_2_conv2d_relu"
+bottom: "mixed_5/tower_1_conv_4_conv2d_relu"
+bottom: "mixed_5/tower_2_conv_conv2d_relu"
 
   top: "mixed_5/chconcat"
   type: "Concat"
@@ -2355,7 +2355,7 @@ layer {
   name: "mixed_6/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/conv_conv2d_bn"
-  top: "mixed_6/conv_conv2d_bn"
+  top: "mixed_6/conv_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_conv_conv2d"
@@ -2397,12 +2397,12 @@ layer {
   name: "mixed_6/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_conv_conv2d_bn"
-  top: "mixed_6/tower_conv_conv2d_bn"
+  top: "mixed_6/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_6/tower_conv_conv2d_bn"
+  bottom: "mixed_6/tower_conv_conv2d_relu"
   top: "mixed_6/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -2441,12 +2441,12 @@ layer {
   name: "mixed_6/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_conv_1_conv2d_bn"
-  top: "mixed_6/tower_conv_1_conv2d_bn"
+  top: "mixed_6/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_6/tower_conv_1_conv2d_bn"
+  bottom: "mixed_6/tower_conv_1_conv2d_relu"
   top: "mixed_6/tower_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -2485,7 +2485,7 @@ layer {
   name: "mixed_6/tower_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_conv_2_conv2d_bn"
-  top: "mixed_6/tower_conv_2_conv2d_bn"
+  top: "mixed_6/tower_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_1_conv_conv2d"
@@ -2527,12 +2527,12 @@ layer {
   name: "mixed_6/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_1_conv_conv2d_bn"
-  top: "mixed_6/tower_1_conv_conv2d_bn"
+  top: "mixed_6/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_6/tower_1_conv_conv2d_bn"
+  bottom: "mixed_6/tower_1_conv_conv2d_relu"
   top: "mixed_6/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -2571,12 +2571,12 @@ layer {
   name: "mixed_6/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_1_conv_1_conv2d_bn"
-  top: "mixed_6/tower_1_conv_1_conv2d_bn"
+  top: "mixed_6/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_6/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_6/tower_1_conv_1_conv2d_relu"
   top: "mixed_6/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -2615,12 +2615,12 @@ layer {
   name: "mixed_6/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_1_conv_2_conv2d_bn"
-  top: "mixed_6/tower_1_conv_2_conv2d_bn"
+  top: "mixed_6/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_1_conv_3_conv2d"
   type: "Convolution"
-  bottom: "mixed_6/tower_1_conv_2_conv2d_bn"
+  bottom: "mixed_6/tower_1_conv_2_conv2d_relu"
   top: "mixed_6/tower_1_conv_3_conv2d"
   convolution_param {
     bias_term: false
@@ -2659,12 +2659,12 @@ layer {
   name: "mixed_6/tower_1_conv_3_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_1_conv_3_conv2d_bn"
-  top: "mixed_6/tower_1_conv_3_conv2d_bn"
+  top: "mixed_6/tower_1_conv_3_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_1_conv_4_conv2d"
   type: "Convolution"
-  bottom: "mixed_6/tower_1_conv_3_conv2d_bn"
+  bottom: "mixed_6/tower_1_conv_3_conv2d_relu"
   top: "mixed_6/tower_1_conv_4_conv2d"
   convolution_param {
     bias_term: false
@@ -2703,7 +2703,7 @@ layer {
   name: "mixed_6/tower_1_conv_4_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_1_conv_4_conv2d_bn"
-  top: "mixed_6/tower_1_conv_4_conv2d_bn"
+  top: "mixed_6/tower_1_conv_4_conv2d_relu"
 }
 layer {
   name: "mixed_6/tower_2_AVG_pool"
@@ -2757,14 +2757,14 @@ layer {
   name: "mixed_6/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_6/tower_2_conv_conv2d_bn"
-  top: "mixed_6/tower_2_conv_conv2d_bn"
+  top: "mixed_6/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_6/chconcat"
-  bottom: "mixed_6/conv_conv2d_bn"
-bottom: "mixed_6/tower_conv_2_conv2d_bn"
-bottom: "mixed_6/tower_1_conv_4_conv2d_bn"
-bottom: "mixed_6/tower_2_conv_conv2d_bn"
+  bottom: "mixed_6/conv_conv2d_relu"
+bottom: "mixed_6/tower_conv_2_conv2d_relu"
+bottom: "mixed_6/tower_1_conv_4_conv2d_relu"
+bottom: "mixed_6/tower_2_conv_conv2d_relu"
 
   top: "mixed_6/chconcat"
   type: "Concat"
@@ -2812,7 +2812,7 @@ layer {
   name: "mixed_7/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/conv_conv2d_bn"
-  top: "mixed_7/conv_conv2d_bn"
+  top: "mixed_7/conv_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_conv_conv2d"
@@ -2854,12 +2854,12 @@ layer {
   name: "mixed_7/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_conv_conv2d_bn"
-  top: "mixed_7/tower_conv_conv2d_bn"
+  top: "mixed_7/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_7/tower_conv_conv2d_bn"
+  bottom: "mixed_7/tower_conv_conv2d_relu"
   top: "mixed_7/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -2898,12 +2898,12 @@ layer {
   name: "mixed_7/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_conv_1_conv2d_bn"
-  top: "mixed_7/tower_conv_1_conv2d_bn"
+  top: "mixed_7/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_7/tower_conv_1_conv2d_bn"
+  bottom: "mixed_7/tower_conv_1_conv2d_relu"
   top: "mixed_7/tower_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -2942,7 +2942,7 @@ layer {
   name: "mixed_7/tower_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_conv_2_conv2d_bn"
-  top: "mixed_7/tower_conv_2_conv2d_bn"
+  top: "mixed_7/tower_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_1_conv_conv2d"
@@ -2984,12 +2984,12 @@ layer {
   name: "mixed_7/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_1_conv_conv2d_bn"
-  top: "mixed_7/tower_1_conv_conv2d_bn"
+  top: "mixed_7/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_7/tower_1_conv_conv2d_bn"
+  bottom: "mixed_7/tower_1_conv_conv2d_relu"
   top: "mixed_7/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -3028,12 +3028,12 @@ layer {
   name: "mixed_7/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_1_conv_1_conv2d_bn"
-  top: "mixed_7/tower_1_conv_1_conv2d_bn"
+  top: "mixed_7/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_7/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_7/tower_1_conv_1_conv2d_relu"
   top: "mixed_7/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -3072,12 +3072,12 @@ layer {
   name: "mixed_7/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_1_conv_2_conv2d_bn"
-  top: "mixed_7/tower_1_conv_2_conv2d_bn"
+  top: "mixed_7/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_1_conv_3_conv2d"
   type: "Convolution"
-  bottom: "mixed_7/tower_1_conv_2_conv2d_bn"
+  bottom: "mixed_7/tower_1_conv_2_conv2d_relu"
   top: "mixed_7/tower_1_conv_3_conv2d"
   convolution_param {
     bias_term: false
@@ -3116,12 +3116,12 @@ layer {
   name: "mixed_7/tower_1_conv_3_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_1_conv_3_conv2d_bn"
-  top: "mixed_7/tower_1_conv_3_conv2d_bn"
+  top: "mixed_7/tower_1_conv_3_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_1_conv_4_conv2d"
   type: "Convolution"
-  bottom: "mixed_7/tower_1_conv_3_conv2d_bn"
+  bottom: "mixed_7/tower_1_conv_3_conv2d_relu"
   top: "mixed_7/tower_1_conv_4_conv2d"
   convolution_param {
     bias_term: false
@@ -3160,7 +3160,7 @@ layer {
   name: "mixed_7/tower_1_conv_4_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_1_conv_4_conv2d_bn"
-  top: "mixed_7/tower_1_conv_4_conv2d_bn"
+  top: "mixed_7/tower_1_conv_4_conv2d_relu"
 }
 layer {
   name: "mixed_7/tower_2_AVG_pool"
@@ -3214,14 +3214,14 @@ layer {
   name: "mixed_7/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_7/tower_2_conv_conv2d_bn"
-  top: "mixed_7/tower_2_conv_conv2d_bn"
+  top: "mixed_7/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_7/chconcat"
-  bottom: "mixed_7/conv_conv2d_bn"
-bottom: "mixed_7/tower_conv_2_conv2d_bn"
-bottom: "mixed_7/tower_1_conv_4_conv2d_bn"
-bottom: "mixed_7/tower_2_conv_conv2d_bn"
+  bottom: "mixed_7/conv_conv2d_relu"
+bottom: "mixed_7/tower_conv_2_conv2d_relu"
+bottom: "mixed_7/tower_1_conv_4_conv2d_relu"
+bottom: "mixed_7/tower_2_conv_conv2d_relu"
 
   top: "mixed_7/chconcat"
   type: "Concat"
@@ -3269,12 +3269,12 @@ layer {
   name: "mixed_8/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_8/tower_conv_conv2d_bn"
-  top: "mixed_8/tower_conv_conv2d_bn"
+  top: "mixed_8/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_8/tower_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_8/tower_conv_conv2d_bn"
+  bottom: "mixed_8/tower_conv_conv2d_relu"
   top: "mixed_8/tower_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -3311,7 +3311,7 @@ layer {
   name: "mixed_8/tower_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_8/tower_conv_1_conv2d_bn"
-  top: "mixed_8/tower_conv_1_conv2d_bn"
+  top: "mixed_8/tower_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_8/tower_1_conv_conv2d"
@@ -3353,12 +3353,12 @@ layer {
   name: "mixed_8/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_8/tower_1_conv_conv2d_bn"
-  top: "mixed_8/tower_1_conv_conv2d_bn"
+  top: "mixed_8/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_8/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_8/tower_1_conv_conv2d_bn"
+  bottom: "mixed_8/tower_1_conv_conv2d_relu"
   top: "mixed_8/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -3397,12 +3397,12 @@ layer {
   name: "mixed_8/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_8/tower_1_conv_1_conv2d_bn"
-  top: "mixed_8/tower_1_conv_1_conv2d_bn"
+  top: "mixed_8/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_8/tower_1_conv_2_conv2d"
   type: "Convolution"
-  bottom: "mixed_8/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_8/tower_1_conv_1_conv2d_relu"
   top: "mixed_8/tower_1_conv_2_conv2d"
   convolution_param {
     bias_term: false
@@ -3441,12 +3441,12 @@ layer {
   name: "mixed_8/tower_1_conv_2_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_8/tower_1_conv_2_conv2d_bn"
-  top: "mixed_8/tower_1_conv_2_conv2d_bn"
+  top: "mixed_8/tower_1_conv_2_conv2d_relu"
 }
 layer {
   name: "mixed_8/tower_1_conv_3_conv2d"
   type: "Convolution"
-  bottom: "mixed_8/tower_1_conv_2_conv2d_bn"
+  bottom: "mixed_8/tower_1_conv_2_conv2d_relu"
   top: "mixed_8/tower_1_conv_3_conv2d"
   convolution_param {
     bias_term: false
@@ -3483,7 +3483,7 @@ layer {
   name: "mixed_8/tower_1_conv_3_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_8/tower_1_conv_3_conv2d_bn"
-  top: "mixed_8/tower_1_conv_3_conv2d_bn"
+  top: "mixed_8/tower_1_conv_3_conv2d_relu"
 }
 layer {
   name: "mixed_8/max_pool"
@@ -3499,8 +3499,8 @@ layer {
 }
 layer {
   name: "mixed_8/chconcat"
-  bottom: "mixed_8/tower_conv_1_conv2d_bn"
-bottom: "mixed_8/tower_1_conv_3_conv2d_bn"
+  bottom: "mixed_8/tower_conv_1_conv2d_relu"
+bottom: "mixed_8/tower_1_conv_3_conv2d_relu"
 bottom: "mixed_8/max_pool"
 
   top: "mixed_8/chconcat"
@@ -3550,7 +3550,7 @@ layer {
   name: "mixed_9/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/conv_conv2d_bn"
-  top: "mixed_9/conv_conv2d_bn"
+  top: "mixed_9/conv_conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_conv_conv2d"
@@ -3592,12 +3592,12 @@ layer {
   name: "mixed_9/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_conv_conv2d_bn"
-  top: "mixed_9/tower_conv_conv2d_bn"
+  top: "mixed_9/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_mixed_conv/conv2d"
   type: "Convolution"
-  bottom: "mixed_9/tower_conv_conv2d_bn"
+  bottom: "mixed_9/tower_conv_conv2d_relu"
   top: "mixed_9/tower_mixed_conv/conv2d"
   convolution_param {
     bias_term: false
@@ -3636,12 +3636,12 @@ layer {
   name: "mixed_9/tower_mixed_conv/conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_mixed_conv/conv2d_bn"
-  top: "mixed_9/tower_mixed_conv/conv2d_bn"
+  top: "mixed_9/tower_mixed_conv/conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_mixed_conv/1_conv2d"
   type: "Convolution"
-  bottom: "mixed_9/tower_conv_conv2d_bn"
+  bottom: "mixed_9/tower_conv_conv2d_relu"
   top: "mixed_9/tower_mixed_conv/1_conv2d"
   convolution_param {
     bias_term: false
@@ -3680,7 +3680,7 @@ layer {
   name: "mixed_9/tower_mixed_conv/1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_mixed_conv/1_conv2d_bn"
-  top: "mixed_9/tower_mixed_conv/1_conv2d_bn"
+  top: "mixed_9/tower_mixed_conv/1_conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_1_conv_conv2d"
@@ -3722,12 +3722,12 @@ layer {
   name: "mixed_9/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_1_conv_conv2d_bn"
-  top: "mixed_9/tower_1_conv_conv2d_bn"
+  top: "mixed_9/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_9/tower_1_conv_conv2d_bn"
+  bottom: "mixed_9/tower_1_conv_conv2d_relu"
   top: "mixed_9/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -3764,12 +3764,12 @@ layer {
   name: "mixed_9/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_1_conv_1_conv2d_bn"
-  top: "mixed_9/tower_1_conv_1_conv2d_bn"
+  top: "mixed_9/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_1_mixed_conv/conv2d"
   type: "Convolution"
-  bottom: "mixed_9/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_9/tower_1_conv_1_conv2d_relu"
   top: "mixed_9/tower_1_mixed_conv/conv2d"
   convolution_param {
     bias_term: false
@@ -3808,12 +3808,12 @@ layer {
   name: "mixed_9/tower_1_mixed_conv/conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_1_mixed_conv/conv2d_bn"
-  top: "mixed_9/tower_1_mixed_conv/conv2d_bn"
+  top: "mixed_9/tower_1_mixed_conv/conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_1_mixed_conv/1_conv2d"
   type: "Convolution"
-  bottom: "mixed_9/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_9/tower_1_conv_1_conv2d_relu"
   top: "mixed_9/tower_1_mixed_conv/1_conv2d"
   convolution_param {
     bias_term: false
@@ -3852,7 +3852,7 @@ layer {
   name: "mixed_9/tower_1_mixed_conv/1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_1_mixed_conv/1_conv2d_bn"
-  top: "mixed_9/tower_1_mixed_conv/1_conv2d_bn"
+  top: "mixed_9/tower_1_mixed_conv/1_conv2d_relu"
 }
 layer {
   name: "mixed_9/tower_2_AVG_pool"
@@ -3906,16 +3906,16 @@ layer {
   name: "mixed_9/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_9/tower_2_conv_conv2d_bn"
-  top: "mixed_9/tower_2_conv_conv2d_bn"
+  top: "mixed_9/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_9/chconcat"
-  bottom: "mixed_9/conv_conv2d_bn"
-bottom: "mixed_9/tower_mixed_conv/conv2d_bn"
-bottom: "mixed_9/tower_mixed_conv/1_conv2d_bn"
-bottom: "mixed_9/tower_1_mixed_conv/conv2d_bn"
-bottom: "mixed_9/tower_1_mixed_conv/1_conv2d_bn"
-bottom: "mixed_9/tower_2_conv_conv2d_bn"
+  bottom: "mixed_9/conv_conv2d_relu"
+bottom: "mixed_9/tower_mixed_conv/conv2d_relu"
+bottom: "mixed_9/tower_mixed_conv/1_conv2d_relu"
+bottom: "mixed_9/tower_1_mixed_conv/conv2d_relu"
+bottom: "mixed_9/tower_1_mixed_conv/1_conv2d_relu"
+bottom: "mixed_9/tower_2_conv_conv2d_relu"
 
   top: "mixed_9/chconcat"
   type: "Concat"
@@ -3964,7 +3964,7 @@ layer {
   name: "mixed_10/conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/conv_conv2d_bn"
-  top: "mixed_10/conv_conv2d_bn"
+  top: "mixed_10/conv_conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_conv_conv2d"
@@ -4006,12 +4006,12 @@ layer {
   name: "mixed_10/tower_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_conv_conv2d_bn"
-  top: "mixed_10/tower_conv_conv2d_bn"
+  top: "mixed_10/tower_conv_conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_mixed_conv/conv2d"
   type: "Convolution"
-  bottom: "mixed_10/tower_conv_conv2d_bn"
+  bottom: "mixed_10/tower_conv_conv2d_relu"
   top: "mixed_10/tower_mixed_conv/conv2d"
   convolution_param {
     bias_term: false
@@ -4050,12 +4050,12 @@ layer {
   name: "mixed_10/tower_mixed_conv/conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_mixed_conv/conv2d_bn"
-  top: "mixed_10/tower_mixed_conv/conv2d_bn"
+  top: "mixed_10/tower_mixed_conv/conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_mixed_conv/1_conv2d"
   type: "Convolution"
-  bottom: "mixed_10/tower_conv_conv2d_bn"
+  bottom: "mixed_10/tower_conv_conv2d_relu"
   top: "mixed_10/tower_mixed_conv/1_conv2d"
   convolution_param {
     bias_term: false
@@ -4094,7 +4094,7 @@ layer {
   name: "mixed_10/tower_mixed_conv/1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_mixed_conv/1_conv2d_bn"
-  top: "mixed_10/tower_mixed_conv/1_conv2d_bn"
+  top: "mixed_10/tower_mixed_conv/1_conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_1_conv_conv2d"
@@ -4136,12 +4136,12 @@ layer {
   name: "mixed_10/tower_1_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_1_conv_conv2d_bn"
-  top: "mixed_10/tower_1_conv_conv2d_bn"
+  top: "mixed_10/tower_1_conv_conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_1_conv_1_conv2d"
   type: "Convolution"
-  bottom: "mixed_10/tower_1_conv_conv2d_bn"
+  bottom: "mixed_10/tower_1_conv_conv2d_relu"
   top: "mixed_10/tower_1_conv_1_conv2d"
   convolution_param {
     bias_term: false
@@ -4178,12 +4178,12 @@ layer {
   name: "mixed_10/tower_1_conv_1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_1_conv_1_conv2d_bn"
-  top: "mixed_10/tower_1_conv_1_conv2d_bn"
+  top: "mixed_10/tower_1_conv_1_conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_1_mixed_conv/conv2d"
   type: "Convolution"
-  bottom: "mixed_10/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_10/tower_1_conv_1_conv2d_relu"
   top: "mixed_10/tower_1_mixed_conv/conv2d"
   convolution_param {
     bias_term: false
@@ -4222,12 +4222,12 @@ layer {
   name: "mixed_10/tower_1_mixed_conv/conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_1_mixed_conv/conv2d_bn"
-  top: "mixed_10/tower_1_mixed_conv/conv2d_bn"
+  top: "mixed_10/tower_1_mixed_conv/conv2d_relu"
 }
 layer {
   name: "mixed_10/tower_1_mixed_conv/1_conv2d"
   type: "Convolution"
-  bottom: "mixed_10/tower_1_conv_1_conv2d_bn"
+  bottom: "mixed_10/tower_1_conv_1_conv2d_relu"
   top: "mixed_10/tower_1_mixed_conv/1_conv2d"
   convolution_param {
     bias_term: false
@@ -4266,7 +4266,7 @@ layer {
   name: "mixed_10/tower_1_mixed_conv/1_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_1_mixed_conv/1_conv2d_bn"
-  top: "mixed_10/tower_1_mixed_conv/1_conv2d_bn"
+  top: "mixed_10/tower_1_mixed_conv/1_conv2d_relu"
 }
 layer {
   name: "mixed_10/max_pool"
@@ -4320,16 +4320,16 @@ layer {
   name: "mixed_10/tower_2_conv_conv2d_relu"
   type: "ReLU"
   bottom: "mixed_10/tower_2_conv_conv2d_bn"
-  top: "mixed_10/tower_2_conv_conv2d_bn"
+  top: "mixed_10/tower_2_conv_conv2d_relu"
 }
 layer {
   name: "mixed_10/chconcat"
-  bottom: "mixed_10/conv_conv2d_bn"
-bottom: "mixed_10/tower_mixed_conv/conv2d_bn"
-bottom: "mixed_10/tower_mixed_conv/1_conv2d_bn"
-bottom: "mixed_10/tower_1_mixed_conv/conv2d_bn"
-bottom: "mixed_10/tower_1_mixed_conv/1_conv2d_bn"
-bottom: "mixed_10/tower_2_conv_conv2d_bn"
+  bottom: "mixed_10/conv_conv2d_relu"
+bottom: "mixed_10/tower_mixed_conv/conv2d_relu"
+bottom: "mixed_10/tower_mixed_conv/1_conv2d_relu"
+bottom: "mixed_10/tower_1_mixed_conv/conv2d_relu"
+bottom: "mixed_10/tower_1_mixed_conv/1_conv2d_relu"
+bottom: "mixed_10/tower_2_conv_conv2d_relu"
 
   top: "mixed_10/chconcat"
   type: "Concat"

@@ -25,6 +25,7 @@ class AppController
     completeLoading: (net) ->
         @$spinner.hide()
         $('#net-title').html(net.name.replace(/_/g, ' '))
+        $('title').text(net.name.replace(/_/g, ' ')+' [Netscope-Analyzer]')
         @$netBox.show()
         @$tableBox.show()
         $(@svg).empty()

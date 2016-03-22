@@ -272,6 +272,7 @@ module.exports = AppController = (function() {
     var renderer;
     this.$spinner.hide();
     $('#net-title').html(net.name.replace(/_/g, ' '));
+    $('title').text(net.name.replace(/_/g, ' ') + ' [Netscope-Analyzer]');
     this.$netBox.show();
     this.$tableBox.show();
     $(this.svg).empty();
@@ -2424,6 +2425,7 @@ module.exports = Renderer = (function() {
     this.layoutDirection = 'tb';
     this.generateGraph();
     this.renderTable();
+    $('title').text();
   }
 
   Renderer.prototype.setupGraph = function() {
