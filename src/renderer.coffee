@@ -58,9 +58,23 @@ class Renderer
                 dim_in: n.analysis.wIn+'x'+n.analysis.hIn
                 ch_out: n.analysis.chOut
                 dim_out: n.analysis.wOut+'x'+n.analysis.hOut
+                ops_raw: n.analysis.comp
+                mem_raw: n.analysis.mem
             }                
             tbl.push(entry)
         return tbl
+        
+    toSuffixForm: (num, decimals = 2) ->
+        exponents = [12,  9,  6,  3]
+        suffices  = ["T","G","M","k"]
+        decimals = Math.pow(10, decimals)
+        #debugger
+        for exponent,i in exponents
+            suffix = suffices[i]
+            factor = Math.pow(10, exponent)
+            if (num > factor)
+                return Math.round(num/factor*decimals)/decimals+suffix
+        return num
         
     summarizeTable: (tbl) ->
         entry = {name: 'start'}
@@ -74,6 +88,11 @@ class Renderer
                 entry.type = 'submodule('+num_subs+')'
                 entry.ch_out = n.ch_out
                 entry.dim_out = n.dim_out
+                entry.ops_raw[key] += n.ops_raw[key] for key of entry.ops_raw               
+                entry.mem_raw[key] += n.mem_raw[key] for key of entry.mem_raw
+                entry.ops[key] = @toSuffixForm(val) for key,val of entry.ops_raw when val > 0
+                entry.mem[key] = @toSuffixForm(val) for key,val of entry.mem_raw when val > 0
+                entry.ops
                 summary.pop()
                 summary.push(entry)
              else
@@ -86,9 +105,28 @@ class Renderer
                     dim_in: n.dim_in
                     ch_out: n.ch_out
                     dim_out: n.dim_out
-                }            
+                    ops_raw: n.ops_raw
+                    mem_raw: n.mem_raw
+                    ops: {}
+                    mem: {}
+                }
+                entry.ops[key] = @toSuffixForm(val) for key,val of entry.ops_raw when val > 0
+                entry.mem[key] = @toSuffixForm(val) for key,val of entry.mem_raw when val > 0
                 summary.push(entry)     
-        return summary   
+        
+        # initialize TOTAL row
+        total = {name: 'TOTAL', ops_raw: {}, mem_raw: {}, ops: {}, mem: {}}
+        _.extend(total.ops_raw, summary[0].ops_raw) # copy zeros from data layer
+        _.extend(total.mem_raw, summary[0].mem_raw) # idem
+        for entry in summary
+            #debugger
+            total.ops_raw[key] += entry.ops_raw[key] for key of entry.ops_raw
+            total.mem_raw[key] += entry.mem_raw[key] for key of entry.mem_raw          
+        total.ops[key] = @toSuffixForm(val) for key,val of total.ops_raw
+        total.mem[key] = @toSuffixForm(val) for key,val of total.mem_raw      
+        summary.push(total) 
+        summary_without_raw = (_.omit(entry, ['ops_raw','mem_raw']) for entry in summary)
+        return summary_without_raw
         
     renderTable: ->
         tbl = @generateTable()
@@ -97,16 +135,18 @@ class Renderer
                        '<h3>Details:</h3>'+Tableify(tbl));
         $(@table+' table').tablesorter()
         for row in $(@table+' table tr')
-            #debugger;
-            # scroll to element on click
-            row.onclick = -> 
+            # click on "Name" -> scroll to node in diagram
+            row.children[1].onclick = -> 
                 #debugger;
-                node = $('div[id^=node-'+(this.children[1]).textContent+']')
+                node = $('div[id^="node-'+this.textContent+'"]')
+                center_offset = 200;
                 $("body,html").animate(
-                    { scrollTop: node.offset().top-100 }, 200
+                    { scrollTop: node.offset().top-center_offset }, 200
                 );
-                node.highlight();
-        
+                $(node).addClass('node-highlight')
+                removeHighlight = (node) -> 
+                    return () -> $(node).removeClass('node-highlight')
+                window.setTimeout(removeHighlight(node), 4000)
 
     insertNode: (layers) ->
         baseNode = layers[0]

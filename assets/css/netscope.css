@@ -171,6 +171,18 @@ h1, h2, h3 {
     color: #FFF;
 }
 
+@-webkit-keyframes highlight {
+    from {color: #fff;}
+    to {color: #000;}
+}
+@keyframes highlight {
+    from {color: #fff;}
+    to {color: #000;}
+}
+.node-highlight {
+    animation: highlight 0.3s linear 0 4 alternate
+}
+
 .edgePath path {
     stroke: #554037;
     fill: #554037;

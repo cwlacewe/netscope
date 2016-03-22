@@ -5,7 +5,7 @@ module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
-    var d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, layertype, len, len1, len2, mode, n, num_inputs, num_ops, numout, p, pad, pad_h, pad_w, params, parent, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref3, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers;
+    var analysis, d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, key, layertype, len, len1, len2, mem, mode, n, num_inputs, num_ops, numout, ops, p, pad, pad_h, pad_w, params, parent, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref3, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
     ref = net.nodes;
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
@@ -19,7 +19,10 @@ module.exports = Analyzer = (function() {
         div: 0,
         exp: 0
       };
-      d.mem = 0;
+      d.mem = {
+        result: 0,
+        param: 0
+      };
       layertype = n.type.toLowerCase();
       parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
       switch (layertype) {
@@ -56,6 +59,7 @@ module.exports = Analyzer = (function() {
           d.chIn = parent.chOut;
           d.chOut = numout;
           d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
+          d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
           break;
         case "innerproduct":
         case "inner_product":
@@ -67,6 +71,7 @@ module.exports = Analyzer = (function() {
           d.hOut = 1;
           d.chOut = numout;
           d.comp.macc = (d.wIn * d.hIn) * d.chIn * d.chOut;
+          d.mem.param = d.wIn * d.hIn * d.chIn * d.chOut;
           break;
         case "pooling":
           params = n.attribs.pooling_param;
@@ -101,6 +106,7 @@ module.exports = Analyzer = (function() {
           d.chOut = d.chIn = parent.chOut;
           d.comp.add = d.wIn * d.hIn * d.chIn;
           d.comp.div = d.wIn * d.hIn * d.chIn;
+          d.mem.param = d.chIn * 2;
           break;
         case "lrn":
           mode = (ref18 = n.attribs.lrn_param.norm_region) != null ? ref18 : 'ACROSS_CHANNELS';
@@ -115,6 +121,7 @@ module.exports = Analyzer = (function() {
           d.comp.add = num_inputs;
           d.comp.exp = num_inputs;
           d.comp.div = num_inputs * 2;
+          d.mem.param = 2;
           break;
         case "concat":
           d.wIn = parent.wOut;
@@ -175,13 +182,44 @@ module.exports = Analyzer = (function() {
           console.log(n);
           debugger;
       }
-      trivial_layers = ["relu", "softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"];
+      trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"];
       if ($.inArray(layertype, trivial_layers) === -1) {
-        _.extend(n.attribs, {
-          analysis: {
-            "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
-            out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
+        analysis = {
+          "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
+          out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
+        };
+        ops = ((function() {
+          var ref21, results;
+          ref21 = d.comp;
+          results = [];
+          for (key in ref21) {
+            val = ref21[key];
+            if (val !== 0) {
+              results.push(val + '⋅' + key);
+            }
           }
+          return results;
+        })()).join(', ');
+        if (ops !== "") {
+          analysis.ops = ops;
+        }
+        mem = ((function() {
+          var ref21, results;
+          ref21 = d.mem;
+          results = [];
+          for (key in ref21) {
+            val = ref21[key];
+            if (val !== 0) {
+              results.push(val + '⋅' + key);
+            }
+          }
+          return results;
+        })()).join(', ');
+        if (mem !== "") {
+          analysis.mem = mem;
+        }
+        _.extend(n.attribs, {
+          analysis: analysis
         });
       }
     }
@@ -2404,11 +2442,11 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.generateGraph = function() {
-    var child, i, j, k, l, lastCoalesed, layers, len, len1, len2, len3, len4, m, node, nodes, parent, ref, ref1, ref2, ref3, sink, source, uberParents;
+    var child, j, k, l, lastCoalesed, layers, len, len1, len2, len3, len4, m, node, nodes, o, parent, ref, ref1, ref2, ref3, sink, source, uberParents;
     this.setupGraph();
     nodes = this.net.sortTopologically();
-    for (i = 0, len = nodes.length; i < len; i++) {
-      node = nodes[i];
+    for (j = 0, len = nodes.length; j < len; j++) {
+      node = nodes[j];
       if (node.isInGraph) {
         continue;
       }
@@ -2416,8 +2454,8 @@ module.exports = Renderer = (function() {
       if (layers.length > 1) {
         lastCoalesed = layers[layers.length - 1];
         ref = lastCoalesed.children;
-        for (j = 0, len1 = ref.length; j < len1; j++) {
-          child = ref[j];
+        for (k = 0, len1 = ref.length; k < len1; k++) {
+          child = ref[k];
           uberParents = _.clone(child.parents);
           uberParents[uberParents.indexOf(lastCoalesed)] = node;
           child.parents = uberParents;
@@ -2425,34 +2463,34 @@ module.exports = Renderer = (function() {
       }
       this.insertNode(layers);
       ref1 = node.parents;
-      for (k = 0, len2 = ref1.length; k < len2; k++) {
-        parent = ref1[k];
+      for (l = 0, len2 = ref1.length; l < len2; l++) {
+        parent = ref1[l];
         this.insertLink(parent, node);
       }
     }
     ref2 = this.graph.sources();
-    for (l = 0, len3 = ref2.length; l < len3; l++) {
-      source = ref2[l];
+    for (m = 0, len3 = ref2.length; m < len3; m++) {
+      source = ref2[m];
       (this.graph.node(source))["class"] = 'node-type-source';
     }
     ref3 = this.graph.sinks();
-    for (m = 0, len4 = ref3.length; m < len4; m++) {
-      sink = ref3[m];
+    for (o = 0, len4 = ref3.length; o < len4; o++) {
+      sink = ref3[o];
       (this.graph.node(sink))["class"] = 'node-type-sink';
     }
     return this.render();
   };
 
   Renderer.prototype.generateTable = function() {
-    var entry, i, id, len, n, ref, tbl;
+    var entry, id, j, len, n, ref, tbl;
     entry = {
       name: 'start'
     };
     tbl = [];
     id = 0;
     ref = this.net.sortTopologically();
-    for (i = 0, len = ref.length; i < len; i++) {
-      n = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      n = ref[j];
       id++;
       entry = {
         ID: id,
@@ -2461,22 +2499,43 @@ module.exports = Renderer = (function() {
         ch_in: n.analysis.chIn,
         dim_in: n.analysis.wIn + 'x' + n.analysis.hIn,
         ch_out: n.analysis.chOut,
-        dim_out: n.analysis.wOut + 'x' + n.analysis.hOut
+        dim_out: n.analysis.wOut + 'x' + n.analysis.hOut,
+        ops_raw: n.analysis.comp,
+        mem_raw: n.analysis.mem
       };
       tbl.push(entry);
     }
     return tbl;
   };
 
+  Renderer.prototype.toSuffixForm = function(num, decimals) {
+    var exponent, exponents, factor, i, j, len, suffices, suffix;
+    if (decimals == null) {
+      decimals = 2;
+    }
+    exponents = [12, 9, 6, 3];
+    suffices = ["T", "G", "M", "k"];
+    decimals = Math.pow(10, decimals);
+    for (i = j = 0, len = exponents.length; j < len; i = ++j) {
+      exponent = exponents[i];
+      suffix = suffices[i];
+      factor = Math.pow(10, exponent);
+      if (num > factor) {
+        return Math.round(num / factor * decimals) / decimals + suffix;
+      }
+    }
+    return num;
+  };
+
   Renderer.prototype.summarizeTable = function(tbl) {
-    var entry, i, len, n, num_subs, slashindex, summary;
+    var entry, j, k, key, len, len1, n, num_subs, ref, ref1, ref2, ref3, ref4, ref5, slashindex, summary, summary_without_raw, total, val;
     entry = {
       name: 'start'
     };
     summary = [];
     num_subs = 0;
-    for (i = 0, len = tbl.length; i < len; i++) {
-      n = tbl[i];
+    for (j = 0, len = tbl.length; j < len; j++) {
+      n = tbl[j];
       slashindex = n.name.indexOf('/');
       if (slashindex > 0 && entry.name.substring(0, slashindex) === n.name.substring(0, slashindex)) {
         num_subs++;
@@ -2484,6 +2543,27 @@ module.exports = Renderer = (function() {
         entry.type = 'submodule(' + num_subs + ')';
         entry.ch_out = n.ch_out;
         entry.dim_out = n.dim_out;
+        for (key in entry.ops_raw) {
+          entry.ops_raw[key] += n.ops_raw[key];
+        }
+        for (key in entry.mem_raw) {
+          entry.mem_raw[key] += n.mem_raw[key];
+        }
+        ref = entry.ops_raw;
+        for (key in ref) {
+          val = ref[key];
+          if (val > 0) {
+            entry.ops[key] = this.toSuffixForm(val);
+          }
+        }
+        ref1 = entry.mem_raw;
+        for (key in ref1) {
+          val = ref1[key];
+          if (val > 0) {
+            entry.mem[key] = this.toSuffixForm(val);
+          }
+        }
+        entry.ops;
         summary.pop();
         summary.push(entry);
       } else {
@@ -2495,43 +2575,106 @@ module.exports = Renderer = (function() {
           ch_in: n.ch_in,
           dim_in: n.dim_in,
           ch_out: n.ch_out,
-          dim_out: n.dim_out
+          dim_out: n.dim_out,
+          ops_raw: n.ops_raw,
+          mem_raw: n.mem_raw,
+          ops: {},
+          mem: {}
         };
+        ref2 = entry.ops_raw;
+        for (key in ref2) {
+          val = ref2[key];
+          if (val > 0) {
+            entry.ops[key] = this.toSuffixForm(val);
+          }
+        }
+        ref3 = entry.mem_raw;
+        for (key in ref3) {
+          val = ref3[key];
+          if (val > 0) {
+            entry.mem[key] = this.toSuffixForm(val);
+          }
+        }
         summary.push(entry);
       }
     }
-    return summary;
+    total = {
+      name: 'TOTAL',
+      ops_raw: {},
+      mem_raw: {},
+      ops: {},
+      mem: {}
+    };
+    _.extend(total.ops_raw, summary[0].ops_raw);
+    _.extend(total.mem_raw, summary[0].mem_raw);
+    for (k = 0, len1 = summary.length; k < len1; k++) {
+      entry = summary[k];
+      for (key in entry.ops_raw) {
+        total.ops_raw[key] += entry.ops_raw[key];
+      }
+      for (key in entry.mem_raw) {
+        total.mem_raw[key] += entry.mem_raw[key];
+      }
+    }
+    ref4 = total.ops_raw;
+    for (key in ref4) {
+      val = ref4[key];
+      total.ops[key] = this.toSuffixForm(val);
+    }
+    ref5 = total.mem_raw;
+    for (key in ref5) {
+      val = ref5[key];
+      total.mem[key] = this.toSuffixForm(val);
+    }
+    summary.push(total);
+    summary_without_raw = (function() {
+      var l, len2, results;
+      results = [];
+      for (l = 0, len2 = summary.length; l < len2; l++) {
+        entry = summary[l];
+        results.push(_.omit(entry, ['ops_raw', 'mem_raw']));
+      }
+      return results;
+    })();
+    return summary_without_raw;
   };
 
   Renderer.prototype.renderTable = function() {
-    var i, len, ref, results, row, summary, tbl;
+    var j, len, ref, results, row, summary, tbl;
     tbl = this.generateTable();
     summary = this.summarizeTable(tbl);
     $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(tbl));
     $(this.table + ' table').tablesorter();
     ref = $(this.table + ' table tr');
     results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      row = ref[i];
-      results.push(row.onclick = function() {
-        var node;
-        node = $('div[id^=node-' + this.children[1].textContent + ']');
+    for (j = 0, len = ref.length; j < len; j++) {
+      row = ref[j];
+      results.push(row.children[1].onclick = function() {
+        var center_offset, node, removeHighlight;
+        node = $('div[id^="node-' + this.textContent + '"]');
+        center_offset = 200;
         $("body,html").animate({
-          scrollTop: node.offset().top - 100
+          scrollTop: node.offset().top - center_offset
         }, 200);
-        return node.highlight();
+        $(node).addClass('node-highlight');
+        removeHighlight = function(node) {
+          return function() {
+            return $(node).removeClass('node-highlight');
+          };
+        };
+        return window.setTimeout(removeHighlight(node), 4000);
       });
     }
     return results;
   };
 
   Renderer.prototype.insertNode = function(layers) {
-    var baseNode, i, layer, len, nodeClass, nodeDesc, nodeLabel;
+    var baseNode, j, layer, len, nodeClass, nodeDesc, nodeLabel;
     baseNode = layers[0];
     nodeClass = 'node-type-' + baseNode.type.replace(/_/g, '-').toLowerCase();
     nodeLabel = '';
-    for (i = 0, len = layers.length; i < len; i++) {
-      layer = layers[i];
+    for (j = 0, len = layers.length; j < len; j++) {
+      layer = layers[j];
       layer.isInGraph = true;
       nodeLabel += this.generateLabel(layer);
       nodeDesc = {
@@ -2601,12 +2744,12 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.tipForNode = function(nodeKey) {
-    var i, layer, len, node, ref, s;
+    var j, layer, len, node, ref, s;
     node = this.graph.node(nodeKey);
     s = '';
     ref = node.layers;
-    for (i = 0, len = ref.length; i < len; i++) {
-      layer = ref[i];
+    for (j = 0, len = ref.length; j < len; j++) {
+      layer = ref[j];
       s += '<div class="node-info-group">';
       s += '<div class="node-info-header">';
       s += '<span class="node-info-title">' + layer.name + '</span>';

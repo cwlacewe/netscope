@@ -14,7 +14,7 @@ class Analyzer
             d.wIn  = d.hIn = d.wOut = d.hOut = 0
             d.chIn = d.chOut = 0
             d.comp = {macc: 0, comp: 0, add: 0, div: 0, exp: 0}
-            d.mem  = 0
+            d.mem  = {result: 0, param: 0}
         
             layertype = n.type.toLowerCase()
             parent = n.parents[0]?.analysis
@@ -28,17 +28,19 @@ class Analyzer
                         d.wIn   = shape.dim[2]
                         d.hIn   = shape.dim[3]
                     else if n.attribs.transform_param?.crop_size?
-                        d.wIn = d.hIn = n.attribs.transform_param.crop_size
+                        d.wIn  = d.hIn = n.attribs.transform_param.crop_size
                         d.chIn = 3
                     else
                         onerror('Unknown Input Dimensions')
                         debugger;
-                    d.wOut = d.wIn
-                    d.hOut = d.hIn
+                    d.wOut  = d.wIn
+                    d.hOut  = d.hIn
                     d.chOut = d.chIn
                     #computation
                     #-- none
-                
+                    #memory
+                    #-- none    (#d.mem.result = d.wOut*d.hOut*d.chOut)
+                    
                 when "convolution"
                     #dimensions
                     params   = n.attribs.convolution_param
@@ -58,6 +60,8 @@ class Analyzer
                     d.chOut = numout
                     #computation
                     d.comp.macc = (kernel_w*kernel_h)*(d.wOut*d.hOut)*d.chIn*d.chOut
+                    #memory
+                    d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
                 
                 when "innerproduct", "inner_product"
                     #dimensions
@@ -70,6 +74,9 @@ class Analyzer
                     d.chOut = numout
                     #computation
                     d.comp.macc = (d.wIn*d.hIn)*d.chIn*d.chOut
+                    #memory
+                    d.mem.param = d.wIn*d.hIn*d.chIn*d.chOut
+                    
                 
                 when "pooling"
                     #dimensions
@@ -97,6 +104,8 @@ class Analyzer
                         #d.comp.div = (d.wOut*d.hOut*d.chOut) #divide by const.
                     else
                         onerror "Unknown pooling type #{pooltype}"
+                    #memory
+                    #-- none
                 
                 when "batchnorm"
                     #dimensions
@@ -110,6 +119,8 @@ class Analyzer
                     # averages during training: over spatial dims + batch
                     d.comp.add = d.wIn*d.hIn*d.chIn
                     d.comp.div = d.wIn*d.hIn*d.chIn
+                    #memory
+                    d.mem.param = d.chIn*2
             
                 when "lrn"
                     #dimensions
@@ -128,6 +139,8 @@ class Analyzer
                     d.comp.add = num_inputs         # (1+...)
                     d.comp.exp = num_inputs         # (...)^β
                     d.comp.div = num_inputs*2       # (α/n)*... + divide by sum
+                    #memory
+                    d.mem.param = 2  # alpha, beta
                 
                 when "concat"
                     #dimensions
@@ -143,6 +156,8 @@ class Analyzer
                     window.onerror('CONCAT: input dimensions dont agree!') if failed
                     #computation
                     # --none
+                    #memory
+                    # --none                    
      
                 when "relu", "dropout"
                     #dimensions
@@ -153,6 +168,8 @@ class Analyzer
                     d.chOut = d.chIn = parent.chOut
                     #computation
                     d.comp.comp = d.wIn*d.hIn*d.chIn
+                    #memory
+                    # --none
                     
                 when "softmax", "softmaxwithloss", "softmax_loss"
                     #dimensions
@@ -165,7 +182,9 @@ class Analyzer
                     d.comp.exp = d.wIn*d.hIn*d.chIn
                     d.comp.add = d.wIn*d.hIn*d.chIn
                     d.comp.div = d.wIn*d.hIn*d.chIn
-                
+                    #memory
+                    # --none
+                    
                 when "flatten"
                     #dimensions
                     d.wIn = parent.wOut
@@ -174,6 +193,8 @@ class Analyzer
                     d.wOut = d.hOut = 1
                     d.chOut = d.chIn * d.wIn * d.hIn
                     #computation
+                    # --none
+                    #memory
                     # --none
                     
                 when "implicit"
@@ -184,20 +205,27 @@ class Analyzer
                     d.chOut = 0
                     #computation
                     # --none
+                    #memory
+                    # --none
                 
                 else # unknown layer;  print error message;
                     onerror('Unknown Layer: '+layertype)
                     console.log(n)
                     debugger;
 
-            # add dimensions to node attributes
-            # so they show in graph tooltips
-            trivial_layers = ["relu", "softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"]
+            # add dimensions to node attributes so they show in graph tooltips
+            trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"]
             if $.inArray(layertype, trivial_layers) == -1
-                _.extend(n.attribs, {
-                analysis: {
+                analysis = {
                     in: d.chIn+'ch ⋅ '+d.wIn+'×'+d.hIn,
-                    out: d.chOut+'ch ⋅ '+d.wOut+'×'+d.hOut
-                    }} )
+                    out: d.chOut+'ch ⋅ '+d.wOut+'×'+d.hOut }
+                ops = (val+'⋅'+key for key,val of d.comp when val isnt 0).join(', ')
+                #debugger
+                analysis.ops = ops if ops != ""
+                mem = (val+'⋅'+key for key,val of d.mem when val isnt 0).join(', ')
+                analysis.mem = mem if mem != ""
+                _.extend(n.attribs, {analysis: analysis});
+                
+                
                 
         return net
