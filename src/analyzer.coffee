@@ -102,7 +102,7 @@ class Analyzer
                     else if pooltype == 'AVE'
                         d.comp.add = num_ops
                         #d.comp.div = (d.wOut*d.hOut*d.chOut) #divide by const.
-                    else
+                    else    
                         onerror "Unknown pooling type #{pooltype}"
                     #memory
                     #-- none
@@ -209,7 +209,6 @@ class Analyzer
                     parent2 = n.parents[1].analysis
                     failed = parent.wOut != parent2.wOut or parent.hOut != parent2.hOut
                     onerror 'ELTWISE: input dimensions dont agree!' if failed
-                    debugger
                     #computation
                     op = n.eltwise_param?.operation?.toUpperCase() ? 'SUM'
                     if op == 'SUM'
@@ -290,7 +289,5 @@ class Analyzer
                 mem = (val+'⋅'+key for key,val of d.mem when val isnt 0).join(', ')
                 analysis.mem = mem if mem != ""
                 _.extend(n.attribs, {analysis: analysis});
-                
-                
                 
         return net

@@ -92,7 +92,7 @@ class Renderer
                 entry.mem_raw[key] += n.mem_raw[key] for key of entry.mem_raw
                 entry.ops[key] = @toSuffixForm(val) for key,val of entry.ops_raw when val > 0
                 entry.mem[key] = @toSuffixForm(val) for key,val of entry.mem_raw when val > 0
-                entry.ops
+                #debugger
                 summary.pop()
                 summary.push(entry)
              else
@@ -105,8 +105,8 @@ class Renderer
                     dim_in: n.dim_in
                     ch_out: n.ch_out
                     dim_out: n.dim_out
-                    ops_raw: n.ops_raw
-                    mem_raw: n.mem_raw
+                    ops_raw: _.extend({}, n.ops_raw)
+                    mem_raw: _.extend({}, n.mem_raw)
                     ops: {}
                     mem: {}
                 }

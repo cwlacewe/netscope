@@ -30,8 +30,8 @@ module.exports = Analyzer = (function() {
           if (((ref2 = n.attribs.input_param) != null ? ref2.shape : void 0) != null) {
             shape = n.attribs.input_param.shape;
             d.chIn = shape.dim[1];
-            d.wIn = shape.dim[2];
-            d.hIn = shape.dim[3];
+            d.hIn = shape.dim[2];
+            d.wIn = shape.dim[3];
           } else if (((ref3 = n.attribs.transform_param) != null ? ref3.crop_size : void 0) != null) {
             d.wIn = d.hIn = n.attribs.transform_param.crop_size;
             d.chIn = 3;
@@ -183,7 +183,6 @@ module.exports = Analyzer = (function() {
           if (failed) {
             onerror('ELTWISE: input dimensions dont agree!');
           }
-          debugger;
           op = (ref21 = (ref22 = n.eltwise_param) != null ? (ref23 = ref22.operation) != null ? ref23.toUpperCase() : void 0 : void 0) != null ? ref21 : 'SUM';
           if (op === 'SUM') {
             d.comp.add = d.wIn * d.hIn * d.chIn;
@@ -2617,7 +2616,6 @@ module.exports = Renderer = (function() {
             entry.mem[key] = this.toSuffixForm(val);
           }
         }
-        entry.ops;
         summary.pop();
         summary.push(entry);
       } else {
@@ -2630,8 +2628,8 @@ module.exports = Renderer = (function() {
           dim_in: n.dim_in,
           ch_out: n.ch_out,
           dim_out: n.dim_out,
-          ops_raw: n.ops_raw,
-          mem_raw: n.mem_raw,
+          ops_raw: _.extend({}, n.ops_raw),
+          mem_raw: _.extend({}, n.mem_raw),
           ops: {},
           mem: {}
         };
