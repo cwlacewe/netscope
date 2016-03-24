@@ -61,7 +61,7 @@ class Analyzer
                     #computation
                     d.comp.macc = (kernel_w*kernel_h)*(d.wOut*d.hOut)*d.chIn*d.chOut
                     #memory
-                    d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
+                    d.mem.param = (kernel_w*kernel_h)*d.chIn*d.chOut
                 
                 when "innerproduct", "inner_product"
                     #dimensions

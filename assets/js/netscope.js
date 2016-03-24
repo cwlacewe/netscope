@@ -59,7 +59,7 @@ module.exports = Analyzer = (function() {
           d.chIn = parent.chOut;
           d.chOut = numout;
           d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
-          d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
+          d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut;
           break;
         case "innerproduct":
         case "inner_product":
