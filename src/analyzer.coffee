@@ -235,8 +235,8 @@ class Analyzer
                     d.wIn = parent?.wOut
                     d.hIn = parent?.hOut      
                     d.chIn = parent?.chOut
-                    d.wOut = d.wIn*stride_w
-                    d.hOut = d.hIn*stride_h
+                    d.wOut = (stride_w*(d.wIn-1)+kernel_w-2*pad_w)
+                    d.hOut = (stride_h*(d.hIn-1)+kernel_h-2*pad_h)
                     d.chOut = numout
                     #computation
                     d.comp.macc = d.chIn*d.chOut*d.wOut*d.hOut*(kernel_w/stride_w)*(kernel_h/stride_h)

@@ -206,8 +206,8 @@ module.exports = Analyzer = (function() {
           d.wIn = parent != null ? parent.wOut : void 0;
           d.hIn = parent != null ? parent.hOut : void 0;
           d.chIn = parent != null ? parent.chOut : void 0;
-          d.wOut = d.wIn * stride_w;
-          d.hOut = d.hIn * stride_h;
+          d.wOut = stride_w * (d.wIn - 1) + kernel_w - 2 * pad_w;
+          d.hOut = stride_h * (d.hIn - 1) + kernel_h - 2 * pad_h;
           d.chOut = numout;
           d.comp.macc = d.chIn * d.chOut * d.wOut * d.hOut * (kernel_w / stride_w) * (kernel_h / stride_h);
           d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
