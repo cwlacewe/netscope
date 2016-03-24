@@ -101,7 +101,7 @@ layers { name: 'score-pool4' type: CONVOLUTION bottom: 'pool4' top: 'score-pool4
   blobs_lr: 1 blobs_lr: 2 weight_decay: 1 weight_decay: 0
   convolution_param { engine: CAFFE num_output: 21 kernel_size: 1 } }
 
-layers { type: CROP name: 'score-pool4c' bottom: 'score-pool4' top: 'score-pool4c' bottom: 'score2' }
+layers { type: CROP name: 'score-pool4c' bottom: 'score-pool4' top: 'score-pool44c' bottom: 'score2' }
   
 layers { type: ELTWISE name: 'score-fuse' bottom: 'score2' bottom: 'score-pool4c' top: 'score-fuse'
 eltwise_param { operation: SUM } }

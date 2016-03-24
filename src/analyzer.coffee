@@ -25,8 +25,8 @@ class Analyzer
                     if n.attribs.input_param?.shape?
                         shape = n.attribs.input_param.shape
                         d.chIn  = shape.dim[1]
-                        d.wIn   = shape.dim[2]
-                        d.hIn   = shape.dim[3]
+                        d.hIn   = shape.dim[2]
+                        d.wIn   = shape.dim[3]
                     else if n.attribs.transform_param?.crop_size?
                         d.wIn  = d.hIn = n.attribs.transform_param.crop_size
                         d.chIn = 3
