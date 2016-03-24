@@ -235,11 +235,11 @@ class Analyzer
                     d.wIn = parent?.wOut
                     d.hIn = parent?.hOut      
                     d.chIn = parent?.chOut
-                    d.wOut = d.wIn*kernel_w/stride_w
-                    d.hOut = d.hIn*kernel_h/stride_h
+                    d.wOut = d.wIn*stride_w
+                    d.hOut = d.hIn*stride_h
                     d.chOut = numout
                     #computation
-                    d.comp.macc = d.chIn*d.chOut*d.wOut*d.hOut
+                    d.comp.macc = d.chIn*d.chOut*d.wOut*d.hOut*(kernel_w/stride_w)*(kernel_h/stride_h)
                     #memory
                     d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
                     
