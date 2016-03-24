@@ -5,7 +5,7 @@ module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
-    var analysis, d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, mem, mode, n, num_inputs, num_ops, numout, op, ops, p, pad, pad_h, pad_w, params, parent, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
+    var analysis, d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, key, layertype, len, len1, len2, mem, mode, n, num_inputs, num_ops, numout, op, ops, p, pad, pad_h, pad_w, params, parent, parent2, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
     ref = net.nodes;
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
@@ -178,15 +178,13 @@ module.exports = Analyzer = (function() {
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
-          ref21 = n.parents;
-          for (l = 0, len3 = ref21.length; l < len3; l++) {
-            p = ref21[l];
-            failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
-          }
+          parent2 = n.parents[1].analysis;
+          failed = parent.wOut !== parent2.wOut || parent.hOut !== parent2.hOut;
           if (failed) {
-            window.onerror('ELTWISE: input dimensions dont agree!');
+            onerror('ELTWISE: input dimensions dont agree!');
           }
-          op = (ref22 = (ref23 = n.eltwise_param) != null ? (ref24 = ref23.operation) != null ? ref24.toUpperCase() : void 0 : void 0) != null ? ref22 : 'SUM';
+          debugger;
+          op = (ref21 = (ref22 = n.eltwise_param) != null ? (ref23 = ref22.operation) != null ? ref23.toUpperCase() : void 0 : void 0) != null ? ref21 : 'SUM';
           if (op === 'SUM') {
             d.comp.add = d.wIn * d.hIn * d.chIn;
           } else if (op === 'MAX') {
@@ -199,14 +197,13 @@ module.exports = Analyzer = (function() {
           break;
         case "deconvolution":
           params = n.attribs.convolution_param;
-          kernel_w = (ref25 = params.kernel_w) != null ? ref25 : params.kernel_size;
-          kernel_h = (ref26 = params.kernel_h) != null ? ref26 : params.kernel_size;
-          stride_w = (ref27 = params.stride_w) != null ? ref27 : (ref28 = params.stride) != null ? ref28 : 1;
-          stride_h = (ref29 = params.stride_h) != null ? ref29 : (ref30 = params.stride) != null ? ref30 : 1;
-          pad_w = (ref31 = params.pad_w) != null ? ref31 : (ref32 = params.pad) != null ? ref32 : 0;
-          pad_h = (ref33 = params.pad_h) != null ? ref33 : (ref34 = params.pad) != null ? ref34 : 0;
+          kernel_w = (ref24 = params.kernel_w) != null ? ref24 : params.kernel_size;
+          kernel_h = (ref25 = params.kernel_h) != null ? ref25 : params.kernel_size;
+          stride_w = (ref26 = params.stride_w) != null ? ref26 : (ref27 = params.stride) != null ? ref27 : 1;
+          stride_h = (ref28 = params.stride_h) != null ? ref28 : (ref29 = params.stride) != null ? ref29 : 1;
+          pad_w = (ref30 = params.pad_w) != null ? ref30 : (ref31 = params.pad) != null ? ref31 : 0;
+          pad_h = (ref32 = params.pad_h) != null ? ref32 : (ref33 = params.pad) != null ? ref33 : 0;
           numout = params.num_output;
-          debugger;
           d.wIn = parent != null ? parent.wOut : void 0;
           d.hIn = parent != null ? parent.hOut : void 0;
           d.chIn = parent != null ? parent.chOut : void 0;
@@ -216,9 +213,16 @@ module.exports = Analyzer = (function() {
           d.comp.macc = d.chIn * d.chOut * d.wOut * d.hOut;
           d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
           break;
-        case "implicit":
         case "crop":
-          debugger;
+          parent2 = n.parents[1].analysis;
+          d.wIn = parent != null ? parent.wOut : void 0;
+          d.hIn = parent != null ? parent.hOut : void 0;
+          d.chIn = parent != null ? parent.chOut : void 0;
+          d.wOut = parent2.wOut;
+          d.hOut = parent2.hOut;
+          d.chOut = d.chIn;
+          break;
+        case "implicit":
           d.wIn = parent != null ? parent.wOut : void 0;
           d.hIn = parent != null ? parent.hOut : void 0;
           d.chIn = parent != null ? parent.chOut : void 0;
@@ -238,11 +242,11 @@ module.exports = Analyzer = (function() {
           out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
         };
         ops = ((function() {
-          var ref35, results;
-          ref35 = d.comp;
+          var ref34, results;
+          ref34 = d.comp;
           results = [];
-          for (key in ref35) {
-            val = ref35[key];
+          for (key in ref34) {
+            val = ref34[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -253,11 +257,11 @@ module.exports = Analyzer = (function() {
           analysis.ops = ops;
         }
         mem = ((function() {
-          var ref35, results;
-          ref35 = d.mem;
+          var ref34, results;
+          ref34 = d.mem;
           results = [];
-          for (key in ref35) {
-            val = ref35[key];
+          for (key in ref34) {
+            val = ref34[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }

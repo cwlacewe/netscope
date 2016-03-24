@@ -101,7 +101,7 @@ layers { name: 'score-pool4' type: CONVOLUTION bottom: 'pool4' top: 'score-pool4
   blobs_lr: 1 blobs_lr: 2 weight_decay: 1 weight_decay: 0
   convolution_param { engine: CAFFE num_output: 21 kernel_size: 1 } }
 
-layers { type: CROP name: 'crop' bottom: 'score-pool4' top: 'score-pool4c' bottom: 'score2' }
+layers { type: CROP name: 'score-pool4c' bottom: 'score-pool4' top: 'score-pool4c' bottom: 'score2' }
   
 layers { type: ELTWISE name: 'score-fuse' bottom: 'score2' bottom: 'score-pool4c' top: 'score-fuse'
 eltwise_param { operation: SUM } }
@@ -111,4 +111,6 @@ layers { type: DECONVOLUTION name: 'bigscore'
   blobs_lr: 0 blobs_lr: 0
   convolution_param { num_output: 21 kernel_size: 32 stride: 16 } }
 
-layers { type: CROP name: 'upscore' bottom: 'bigscore' top: 'upscore' bottom: 'data' }
+layers { type: CROP name: 'upscore' bottom: 'bigscore' bottom: 'data' top: 'upscore' }
+
+layers { type: SOFTMAX name: 'output' bottom: 'upscore'}

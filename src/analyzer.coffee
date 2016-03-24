@@ -206,8 +206,10 @@ class Analyzer
                     d.hOut = d.hIn
                     d.chOut = d.chIn
                     # check input dimensions
-                    failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn) for p in n.parents
-                    window.onerror('ELTWISE: input dimensions dont agree!') if failed
+                    parent2 = n.parents[1].analysis
+                    failed = parent.wOut != parent2.wOut or parent.hOut != parent2.hOut
+                    onerror 'ELTWISE: input dimensions dont agree!' if failed
+                    debugger
                     #computation
                     op = n.eltwise_param?.operation?.toUpperCase() ? 'SUM'
                     if op == 'SUM'
@@ -231,7 +233,6 @@ class Analyzer
                     pad_w    = params.pad_w ? (params.pad ? 0)
                     pad_h    = params.pad_h ? (params.pad ? 0)
                     numout   = params.num_output
-                    debugger
                     d.wIn = parent?.wOut
                     d.hIn = parent?.hOut      
                     d.chIn = parent?.chOut
@@ -243,8 +244,22 @@ class Analyzer
                     #memory
                     d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
                     
-                when "implicit", "crop"
-                    debugger
+                when "crop"
+                    #dimensions
+                    ## crop to dims of 2nd parent
+                    parent2 = n.parents[1].analysis
+                    d.wIn = parent?.wOut
+                    d.hIn = parent?.hOut
+                    d.chIn = parent?.chOut
+                    d.wOut = parent2.wOut
+                    d.hOut = parent2.hOut
+                    d.chOut = d.chIn
+                    #computation
+                    # --none
+                    #memory
+                    # --none
+                
+                when "implicit"
                     #dimensions
                     ## assume pass-through
                     d.wIn = parent?.wOut
