@@ -5,7 +5,7 @@ module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
-    var analysis, d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, key, layertype, len, len1, len2, mem, mode, n, num_inputs, num_ops, numout, ops, p, pad, pad_h, pad_w, params, parent, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref3, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
+    var analysis, d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, mem, mode, n, num_inputs, num_ops, numout, op, ops, p, pad, pad_h, pad_w, params, parent, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
     ref = net.nodes;
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
@@ -171,11 +171,60 @@ module.exports = Analyzer = (function() {
           d.wOut = d.hOut = 1;
           d.chOut = d.chIn * d.wIn * d.hIn;
           break;
+        case "eltwise":
+          d.wIn = parent.wOut;
+          d.hIn = parent.hOut;
+          d.chIn = parent.chOut;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn;
+          ref21 = n.parents;
+          for (l = 0, len3 = ref21.length; l < len3; l++) {
+            p = ref21[l];
+            failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
+          }
+          if (failed) {
+            window.onerror('ELTWISE: input dimensions dont agree!');
+          }
+          op = (ref22 = (ref23 = n.eltwise_param) != null ? (ref24 = ref23.operation) != null ? ref24.toUpperCase() : void 0 : void 0) != null ? ref22 : 'SUM';
+          if (op === 'SUM') {
+            d.comp.add = d.wIn * d.hIn * d.chIn;
+          } else if (op === 'MAX') {
+            d.comp.comp = d.wIn * d.hIn * d.chIn;
+          } else if (op === 'PROD') {
+            d.comp.macc = d.wIn * d.hIn * d.chIn;
+          } else {
+            onerror('ELTWISE: unknown operation ' + op);
+          }
+          break;
+        case "deconvolution":
+          params = n.attribs.convolution_param;
+          kernel_w = (ref25 = params.kernel_w) != null ? ref25 : params.kernel_size;
+          kernel_h = (ref26 = params.kernel_h) != null ? ref26 : params.kernel_size;
+          stride_w = (ref27 = params.stride_w) != null ? ref27 : (ref28 = params.stride) != null ? ref28 : 1;
+          stride_h = (ref29 = params.stride_h) != null ? ref29 : (ref30 = params.stride) != null ? ref30 : 1;
+          pad_w = (ref31 = params.pad_w) != null ? ref31 : (ref32 = params.pad) != null ? ref32 : 0;
+          pad_h = (ref33 = params.pad_h) != null ? ref33 : (ref34 = params.pad) != null ? ref34 : 0;
+          numout = params.num_output;
+          debugger;
+          d.wIn = parent != null ? parent.wOut : void 0;
+          d.hIn = parent != null ? parent.hOut : void 0;
+          d.chIn = parent != null ? parent.chOut : void 0;
+          d.wOut = d.wIn * kernel_w / stride_w;
+          d.hOut = d.hIn * kernel_h / stride_h;
+          d.chOut = numout;
+          d.comp.macc = d.chIn * d.chOut * d.wOut * d.hOut;
+          d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
+          break;
         case "implicit":
-          d.wIn = d.hIn = 0;
-          d.chIn = 0;
-          d.wOut = d.hOut = 0;
-          d.chOut = 0;
+        case "crop":
+          debugger;
+          d.wIn = parent != null ? parent.wOut : void 0;
+          d.hIn = parent != null ? parent.hOut : void 0;
+          d.chIn = parent != null ? parent.chOut : void 0;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn;
           break;
         default:
           onerror('Unknown Layer: ' + layertype);
@@ -189,11 +238,11 @@ module.exports = Analyzer = (function() {
           out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
         };
         ops = ((function() {
-          var ref21, results;
-          ref21 = d.comp;
+          var ref35, results;
+          ref35 = d.comp;
           results = [];
-          for (key in ref21) {
-            val = ref21[key];
+          for (key in ref35) {
+            val = ref35[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -204,11 +253,11 @@ module.exports = Analyzer = (function() {
           analysis.ops = ops;
         }
         mem = ((function() {
-          var ref21, results;
-          ref21 = d.mem;
+          var ref35, results;
+          ref35 = d.mem;
           results = [];
-          for (key in ref21) {
-            val = ref21[key];
+          for (key in ref35) {
+            val = ref35[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -2425,7 +2474,6 @@ module.exports = Renderer = (function() {
     this.layoutDirection = 'tb';
     this.generateGraph();
     this.renderTable();
-    $('title').text();
   }
 
   Renderer.prototype.setupGraph = function() {

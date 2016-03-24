@@ -197,12 +197,62 @@ class Analyzer
                     #memory
                     # --none
                     
-                when "implicit"
+                when "eltwise"
                     #dimensions
-                    d.wIn = d.hIn = 0     
-                    d.chIn = 0
-                    d.wOut = d.hOut = 0
-                    d.chOut = 0
+                    d.wIn = parent.wOut
+                    d.hIn = parent.hOut      
+                    d.chIn = parent.chOut
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    d.chOut = d.chIn
+                    # check input dimensions
+                    failed = failed || (p.analysis.wOut != d.wIn || p.analysis.hOut != d.hIn) for p in n.parents
+                    window.onerror('ELTWISE: input dimensions dont agree!') if failed
+                    #computation
+                    op = n.eltwise_param?.operation?.toUpperCase() ? 'SUM'
+                    if op == 'SUM'
+                        d.comp.add = d.wIn*d.hIn*d.chIn
+                    else if op == 'MAX'
+                        d.comp.comp = d.wIn*d.hIn*d.chIn
+                    else if op == 'PROD'
+                        d.comp.macc = d.wIn*d.hIn*d.chIn
+                    else
+                        onerror 'ELTWISE: unknown operation '+op
+                    #memory
+                    # --none
+                    
+                when "deconvolution"
+                    #dimensions
+                    params   = n.attribs.convolution_param
+                    kernel_w = params.kernel_w ? params.kernel_size
+                    kernel_h = params.kernel_h ? params.kernel_size
+                    stride_w = params.stride_w ? (params.stride ? 1)
+                    stride_h = params.stride_h ? (params.stride ? 1)
+                    pad_w    = params.pad_w ? (params.pad ? 0)
+                    pad_h    = params.pad_h ? (params.pad ? 0)
+                    numout   = params.num_output
+                    debugger
+                    d.wIn = parent?.wOut
+                    d.hIn = parent?.hOut      
+                    d.chIn = parent?.chOut
+                    d.wOut = d.wIn*kernel_w/stride_w
+                    d.hOut = d.hIn*kernel_h/stride_h
+                    d.chOut = numout
+                    #computation
+                    d.comp.macc = d.chIn*d.chOut*d.wOut*d.hOut
+                    #memory
+                    d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
+                    
+                when "implicit", "crop"
+                    debugger
+                    #dimensions
+                    ## assume pass-through
+                    d.wIn = parent?.wOut
+                    d.hIn = parent?.hOut
+                    d.chIn = parent?.chOut
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    d.chOut = d.chIn
                     #computation
                     # --none
                     #memory
