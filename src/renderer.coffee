@@ -134,19 +134,23 @@ class Renderer
         $(@table).html('<h3>Summary:</h3>'+Tableify(summary)+
                        '<h3>Details:</h3>'+Tableify(tbl));
         $(@table+' table').tablesorter()
-        for row in $(@table+' table tr')
-            # click on "Name" -> scroll to node in diagram
-            row.children[1].onclick = -> 
-                #debugger;
-                node = $('div[id^="node-'+this.textContent+'"]')
-                center_offset = 200;
-                $("body,html").animate(
-                    { scrollTop: node.offset().top-center_offset }, 200
-                );
-                $(node).addClass('node-highlight')
+        scroll_to = (el) ->
+            return () -> 
+                alert('scroll to '+el.text())
+                el_top = $(el).offset().top
+                offset = 200;
+                $("body,html").animate({ scrollTop: el_top-offset }, 200);
+                $(el).addClass 'node-highlight'
                 removeHighlight = (node) -> 
-                    return () -> $(node).removeClass('node-highlight')
-                window.setTimeout(removeHighlight(node), 4000)
+                    return () -> $(node).removeClass 'node-highlight'
+                window.setTimeout removeHighlight(el), 4000
+                
+        for row in $(@table+' table tr')
+            # click on <td>"Name"</td> -> scroll to node in diagram
+            $table_elem = $(row.children[1])
+            $node_elem  = $('div[id^="node-'+$table_elem.text()+'"]')
+            $table_elem.click( scroll_to $node_elem )
+            $node_elem.click( scroll_to $table_elem )
 
     insertNode: (layers) ->
         baseNode = layers[0]

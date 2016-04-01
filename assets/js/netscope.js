@@ -2725,30 +2725,37 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.renderTable = function() {
-    var j, len, ref, results, row, summary, tbl;
+    var $node_elem, $table_elem, j, len, ref, results, row, scroll_to, summary, tbl;
     tbl = this.generateTable();
     summary = this.summarizeTable(tbl);
     $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(tbl));
     $(this.table + ' table').tablesorter();
-    ref = $(this.table + ' table tr');
-    results = [];
-    for (j = 0, len = ref.length; j < len; j++) {
-      row = ref[j];
-      results.push(row.children[1].onclick = function() {
-        var center_offset, node, removeHighlight;
-        node = $('div[id^="node-' + this.textContent + '"]');
-        center_offset = 200;
+    scroll_to = function(el) {
+      return function() {
+        var el_top, offset, removeHighlight;
+        alert('scroll to ' + el.text());
+        el_top = $(el).offset().top;
+        offset = 200;
         $("body,html").animate({
-          scrollTop: node.offset().top - center_offset
+          scrollTop: el_top - offset
         }, 200);
-        $(node).addClass('node-highlight');
+        $(el).addClass('node-highlight');
         removeHighlight = function(node) {
           return function() {
             return $(node).removeClass('node-highlight');
           };
         };
-        return window.setTimeout(removeHighlight(node), 4000);
-      });
+        return window.setTimeout(removeHighlight(el), 4000);
+      };
+    };
+    ref = $(this.table + ' table tr');
+    results = [];
+    for (j = 0, len = ref.length; j < len; j++) {
+      row = ref[j];
+      $table_elem = $(row.children[1]);
+      $node_elem = $('div[id^="node-' + $table_elem.text() + '"]');
+      $table_elem.click(scroll_to($node_elem));
+      results.push($node_elem.click(scroll_to($table_elem)));
     }
     return results;
   };
