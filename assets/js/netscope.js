@@ -2725,19 +2725,17 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.renderTable = function() {
-    var $node_elem, $table_elem, j, len, ref, results, row, scroll_to, summary, tbl;
-    tbl = this.generateTable();
-    summary = this.summarizeTable(tbl);
-    $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(tbl));
+    var $node_elem, $table_elem, detail, j, len, ref, row, row_array, scroll_to, summary, summary_body, summary_table;
+    detail = this.generateTable();
+    summary = this.summarizeTable(detail);
+    $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(detail));
     $(this.table + ' table').tablesorter();
     scroll_to = function(el) {
       return function() {
-        var el_top, offset, removeHighlight;
-        alert('scroll to ' + el.text());
-        el_top = $(el).offset().top;
-        offset = 200;
+        var removeHighlight, top_coord;
+        top_coord = $(el).offset().top - 200;
         $("body,html").animate({
-          scrollTop: el_top - offset
+          scrollTop: top_coord
         }, 200);
         $(el).addClass('node-highlight');
         removeHighlight = function(node) {
@@ -2748,16 +2746,18 @@ module.exports = Renderer = (function() {
         return window.setTimeout(removeHighlight(el), 4000);
       };
     };
-    ref = $(this.table + ' table tr');
-    results = [];
+    summary_table = $(this.table + ' table')[0];
+    summary_body = summary_table.children[1];
+    row_array = Array.prototype.slice.call(summary_body.children);
+    ref = row_array.slice(0, -1);
     for (j = 0, len = ref.length; j < len; j++) {
       row = ref[j];
       $table_elem = $(row.children[1]);
       $node_elem = $('div[id^="node-' + $table_elem.text() + '"]');
       $table_elem.click(scroll_to($node_elem));
-      results.push($node_elem.click(scroll_to($table_elem)));
+      $node_elem.click(scroll_to($table_elem));
     }
-    return results;
+    return null;
   };
 
   Renderer.prototype.insertNode = function(layers) {

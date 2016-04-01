@@ -129,28 +129,36 @@ class Renderer
         return summary_without_raw
         
     renderTable: ->
-        tbl = @generateTable()
-        summary = @summarizeTable(tbl)
+        # Generate Detail Table and Summary
+        detail = @generateTable()
+        summary = @summarizeTable(detail)
         $(@table).html('<h3>Summary:</h3>'+Tableify(summary)+
-                       '<h3>Details:</h3>'+Tableify(tbl));
+                       '<h3>Details:</h3>'+Tableify(detail));
+        # Add Sorting Headers
         $(@table+' table').tablesorter()
+        # Add Click-to-Scroll Handlers
+
+        # Closure Function that executes scroll:
         scroll_to = (el) ->
             return () -> 
-                alert('scroll to '+el.text())
-                el_top = $(el).offset().top
-                offset = 200;
-                $("body,html").animate({ scrollTop: el_top-offset }, 200);
+                top_coord = $(el).offset().top-200;
+                $("body,html").animate({ scrollTop: top_coord }, 200);
                 $(el).addClass 'node-highlight'
                 removeHighlight = (node) -> 
                     return () -> $(node).removeClass 'node-highlight'
                 window.setTimeout removeHighlight(el), 4000
                 
-        for row in $(@table+' table tr')
-            # click on <td>"Name"</td> -> scroll to node in diagram
+        # Add Click-to-Scroll to all summary rows, except last
+        summary_table = $(@table+' table')[0]
+        summary_body = summary_table.children[1]
+        row_array = Array.prototype.slice.call(summary_body.children)
+        for row in row_array.slice(0,-1)
+            # Add Link between Node and Table Element -> both directions work
             $table_elem = $(row.children[1])
             $node_elem  = $('div[id^="node-'+$table_elem.text()+'"]')
             $table_elem.click( scroll_to $node_elem )
             $node_elem.click( scroll_to $table_elem )
+        return null
 
     insertNode: (layers) ->
         baseNode = layers[0]
