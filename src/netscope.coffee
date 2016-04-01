@@ -12,15 +12,15 @@ $(document).ready ->
     # formats other than Caffe.
     loader = new Loader(CaffeNetwork)
     # Helper function for wrapping the load calls.
-    makeLoader = (loadingFunc) ->
+    makeLoader = (loadingFunc, loader) ->
         (args...) ->
-            app.startLoading loadingFunc, args...
+            app.startLoading loadingFunc, loader, args...
 
     # Register routes
     routes =
-       '/gist/:gistID' : makeLoader loader.fromGist
-       '/url/(.+)'     : makeLoader loader.fromURL
-       '/preset/:name' : makeLoader loader.fromPreset
+       '/gist/:gistID' : makeLoader loader.fromGist, loader
+       '/url/(.+)'     : makeLoader loader.fromURL, loader
+       '/preset/:name' : makeLoader loader.fromPreset, loader
        '/editor(/?)'   : => app.showEditor loader
        '/doc'          : => showDocumentation()
     router = Router(routes)

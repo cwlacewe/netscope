@@ -13,19 +13,22 @@ class AppController
         @table      = '#table-content'
         @setupErrorHandler()
 
-    startLoading: (loader, args...) ->
+    startLoading: (loaderFunc, loader, args...) ->
         if @inProgress
             return
         @$netError.hide()
         @$netBox.hide()
         @$tableBox.hide()
         @$spinner.show()
-        loader args..., (net) => @completeLoading(net)
+        loaderFunc args..., (net) => @completeLoading(net, loader)
 
-    completeLoading: (net) ->
+    completeLoading: (net, loader) ->
         @$spinner.hide()
         $('#net-title').html(net.name.replace(/_/g, ' '))
         $('title').text(net.name.replace(/_/g, ' ')+' [Netscope-Analyzer]')
+        editlink = $("<a>(edit)</a>").addClass("editlink")
+        editlink.appendTo $('#net-title')
+        editlink.click( => @showEditor(loader))
         @$netBox.show()
         @$tableBox.show()
         $(@svg).empty()
@@ -33,16 +36,18 @@ class AppController
         renderer = new Renderer net, @svg, @table
         @inProgress = false
 
-    makeLoader: (loader) ->
+    makeLoader: (loaderFunc, loader) ->
         (args...) =>
-            @startLoading loader, args...
+            @startLoading loaderFunc, loader, args...
 
     showEditor: (loader) ->
         # Display the editor by lazily loading CodeMirror.
         # loader is an instance of a Loader.
         if(_.isUndefined(window.CodeMirror))
             $.getScript 'assets/js/lib/codemirror.min.js', =>
-                @netEditor = new Editor @makeLoader loader.load
+                @netEditor = new Editor(@makeLoader(loader.load, loader), loader)
+        else
+            @netEditor.reload(loader.load, loader)
 
     setupErrorHandler: ->
         window.onerror = (message, filename, lineno, colno, e) =>

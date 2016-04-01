@@ -3,6 +3,7 @@ class Loader
     constructor: (@parser) ->
         # The parser is a unary function that accepts the network source
         # and outputs a Network instance.
+        @dataLoaded = null;
 
     fromGist: (gistID, callback) =>
         # Load the model with the given Gist ID.
@@ -29,11 +30,11 @@ class Loader
 
     fromPreset: (name, callback) =>
         # Load a preset model. Caffe Only.
-        # TODO: Deprecate this. Replace with Gists.
         $.get './presets/'+name+'.prototxt', (data) =>
             @load data, callback
 
     load: (data, callback) =>
+        @dataLoaded = data
         net = @parser.parse data
         if not _.isUndefined(callback)
             callback net

@@ -89,6 +89,13 @@ h1, h2, h3 {
     text-align: center;
 }
 
+#net-title .editlink {
+    font-size: 0.3em;
+    padding-left: 10px;
+    color: #554037;
+    cursor: pointer;
+}
+
 #net-error {
     background-color: #C23739;
     color: #FFF;

@@ -304,8 +304,8 @@ module.exports = AppController = (function() {
   }
 
   AppController.prototype.startLoading = function() {
-    var args, loader;
-    loader = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    var args, loader, loaderFunc;
+    loaderFunc = arguments[0], loader = arguments[1], args = 3 <= arguments.length ? slice.call(arguments, 2) : [];
     if (this.inProgress) {
       return;
     }
@@ -313,18 +313,25 @@ module.exports = AppController = (function() {
     this.$netBox.hide();
     this.$tableBox.hide();
     this.$spinner.show();
-    return loader.apply(null, slice.call(args).concat([(function(_this) {
+    return loaderFunc.apply(null, slice.call(args).concat([(function(_this) {
       return function(net) {
-        return _this.completeLoading(net);
+        return _this.completeLoading(net, loader);
       };
     })(this)]));
   };
 
-  AppController.prototype.completeLoading = function(net) {
-    var renderer;
+  AppController.prototype.completeLoading = function(net, loader) {
+    var editlink, renderer;
     this.$spinner.hide();
     $('#net-title').html(net.name.replace(/_/g, ' '));
     $('title').text(net.name.replace(/_/g, ' ') + ' [Netscope-Analyzer]');
+    editlink = $("<a>(edit)</a>").addClass("editlink");
+    editlink.appendTo($('#net-title'));
+    editlink.click((function(_this) {
+      return function() {
+        return _this.showEditor(loader);
+      };
+    })(this));
     this.$netBox.show();
     this.$tableBox.show();
     $(this.svg).empty();
@@ -333,12 +340,12 @@ module.exports = AppController = (function() {
     return this.inProgress = false;
   };
 
-  AppController.prototype.makeLoader = function(loader) {
+  AppController.prototype.makeLoader = function(loaderFunc, loader) {
     return (function(_this) {
       return function() {
         var args;
         args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-        return _this.startLoading.apply(_this, [loader].concat(slice.call(args)));
+        return _this.startLoading.apply(_this, [loaderFunc, loader].concat(slice.call(args)));
       };
     })(this);
   };
@@ -347,9 +354,11 @@ module.exports = AppController = (function() {
     if (_.isUndefined(window.CodeMirror)) {
       return $.getScript('assets/js/lib/codemirror.min.js', (function(_this) {
         return function() {
-          return _this.netEditor = new Editor(_this.makeLoader(loader.load));
+          return _this.netEditor = new Editor(_this.makeLoader(loader.load, loader), loader);
         };
       })(this));
+    } else {
+      return this.netEditor.reload(loader.load, loader);
     }
   };
 
@@ -2185,16 +2194,17 @@ module.exports = (function() {
 var Editor;
 
 module.exports = Editor = (function() {
-  function Editor(loader) {
-    var $editorBox, editorWidthPercentage;
-    this.loader = loader;
+  function Editor(loaderFunc, loader) {
+    var $editorBox, editorWidthPercentage, preset, ref;
+    this.loaderFunc = loaderFunc;
     editorWidthPercentage = 30;
     $editorBox = $($.parseHTML('<div class="column"></div>'));
     $editorBox.width(editorWidthPercentage + '%');
     $('#net-column').width((100 - editorWidthPercentage) + '%');
     $('#master-container').prepend($editorBox);
+    preset = (ref = loader.dataLoaded) != null ? ref : '# Enter your network definition here.\n# Use Shift+Enter to update the visualization.';
     this.editor = CodeMirror($editorBox[0], {
-      value: '# Enter your network definition here.\n# Use Shift+Enter to update the visualization.',
+      value: preset,
       lineNumbers: true,
       lineWrapping: true
     });
@@ -2205,10 +2215,17 @@ module.exports = Editor = (function() {
     })(this));
   }
 
+  Editor.prototype.reload = function(loaderFunc, loader) {
+    var preset, ref;
+    this.loaderFunc = loaderFunc;
+    preset = (ref = loader.dataLoaded) != null ? ref : '# Enter your network definition here.\n# Use Shift+Enter to update the visualization.';
+    return this.editor.setValue(preset);
+  };
+
   Editor.prototype.onKeyDown = function(e) {
     if (e.shiftKey && e.keyCode === 13) {
       e.preventDefault();
-      return this.loader(this.editor.getValue());
+      return this.loaderFunc(this.editor.getValue());
     }
   };
 
@@ -2228,6 +2245,7 @@ module.exports = Loader = (function() {
     this.fromPreset = bind(this.fromPreset, this);
     this.fromURL = bind(this.fromURL, this);
     this.fromGist = bind(this.fromGist, this);
+    this.dataLoaded = null;
   }
 
   Loader.prototype.fromGist = function(gistID, callback) {
@@ -2274,6 +2292,7 @@ module.exports = Loader = (function() {
 
   Loader.prototype.load = function(data, callback) {
     var net;
+    this.dataLoaded = data;
     net = this.parser.parse(data);
     if (!_.isUndefined(callback)) {
       callback(net);
@@ -2304,17 +2323,17 @@ $(document).ready(function() {
   var app, loader, makeLoader, router, routes;
   app = new AppController();
   loader = new Loader(CaffeNetwork);
-  makeLoader = function(loadingFunc) {
+  makeLoader = function(loadingFunc, loader) {
     return function() {
       var args;
       args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      return app.startLoading.apply(app, [loadingFunc].concat(slice.call(args)));
+      return app.startLoading.apply(app, [loadingFunc, loader].concat(slice.call(args)));
     };
   };
   routes = {
-    '/gist/:gistID': makeLoader(loader.fromGist),
-    '/url/(.+)': makeLoader(loader.fromURL),
-    '/preset/:name': makeLoader(loader.fromPreset),
+    '/gist/:gistID': makeLoader(loader.fromGist, loader),
+    '/url/(.+)': makeLoader(loader.fromURL, loader),
+    '/preset/:name': makeLoader(loader.fromPreset, loader),
     '/editor(/?)': (function(_this) {
       return function() {
         return app.showEditor(loader);
