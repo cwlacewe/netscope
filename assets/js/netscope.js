@@ -20,7 +20,7 @@ module.exports = Analyzer = (function() {
         exp: 0
       };
       d.mem = {
-        result: 0,
+        activation: 0,
         param: 0
       };
       layertype = n.type.toLowerCase();
@@ -42,6 +42,7 @@ module.exports = Analyzer = (function() {
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "convolution":
           params = n.attribs.convolution_param;
@@ -60,6 +61,7 @@ module.exports = Analyzer = (function() {
           d.chOut = numout;
           d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
           d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "innerproduct":
         case "inner_product":
@@ -72,6 +74,7 @@ module.exports = Analyzer = (function() {
           d.chOut = numout;
           d.comp.macc = (d.wIn * d.hIn) * d.chIn * d.chOut;
           d.mem.param = d.wIn * d.hIn * d.chIn * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "pooling":
           params = n.attribs.pooling_param;
@@ -97,6 +100,7 @@ module.exports = Analyzer = (function() {
           } else {
             onerror("Unknown pooling type " + pooltype);
           }
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "batchnorm":
           d.wIn = parent.wOut;
@@ -107,6 +111,7 @@ module.exports = Analyzer = (function() {
           d.comp.add = d.wIn * d.hIn * d.chIn;
           d.comp.div = d.wIn * d.hIn * d.chIn;
           d.mem.param = d.chIn * 2;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "lrn":
           mode = (ref18 = n.attribs.lrn_param.norm_region) != null ? ref18 : 'ACROSS_CHANNELS';
@@ -122,6 +127,7 @@ module.exports = Analyzer = (function() {
           d.comp.exp = num_inputs;
           d.comp.div = num_inputs * 2;
           d.mem.param = 2;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "concat":
           d.wIn = parent.wOut;
@@ -142,6 +148,7 @@ module.exports = Analyzer = (function() {
           if (failed) {
             window.onerror('CONCAT: input dimensions dont agree!');
           }
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "relu":
         case "dropout":
@@ -151,6 +158,7 @@ module.exports = Analyzer = (function() {
           d.hOut = d.hIn;
           d.chOut = d.chIn = parent.chOut;
           d.comp.comp = d.wIn * d.hIn * d.chIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "softmax":
         case "softmaxwithloss":
@@ -163,6 +171,7 @@ module.exports = Analyzer = (function() {
           d.comp.exp = d.wIn * d.hIn * d.chIn;
           d.comp.add = d.wIn * d.hIn * d.chIn;
           d.comp.div = d.wIn * d.hIn * d.chIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "flatten":
           d.wIn = parent.wOut;
@@ -170,6 +179,7 @@ module.exports = Analyzer = (function() {
           d.chIn = parent.chOut;
           d.wOut = d.hOut = 1;
           d.chOut = d.chIn * d.wIn * d.hIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "eltwise":
           d.wIn = parent.wOut;
@@ -193,6 +203,7 @@ module.exports = Analyzer = (function() {
           } else {
             onerror('ELTWISE: unknown operation ' + op);
           }
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "deconvolution":
           params = n.attribs.convolution_param;
@@ -211,6 +222,7 @@ module.exports = Analyzer = (function() {
           d.chOut = numout;
           d.comp.macc = d.chIn * d.chOut * d.wOut * d.hOut * (kernel_w / stride_w) * (kernel_h / stride_h);
           d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "crop":
           parent2 = n.parents[1].analysis;
@@ -220,6 +232,7 @@ module.exports = Analyzer = (function() {
           d.wOut = parent2.wOut;
           d.hOut = parent2.hOut;
           d.chOut = d.chIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "implicit":
           d.wIn = parent != null ? parent.wOut : void 0;
@@ -228,6 +241,7 @@ module.exports = Analyzer = (function() {
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         default:
           onerror('Unknown Layer: ' + layertype);

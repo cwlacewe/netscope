@@ -14,7 +14,7 @@ class Analyzer
             d.wIn  = d.hIn = d.wOut = d.hOut = 0
             d.chIn = d.chOut = 0
             d.comp = {macc: 0, comp: 0, add: 0, div: 0, exp: 0}
-            d.mem  = {result: 0, param: 0}
+            d.mem  = {activation: 0, param: 0}
         
             layertype = n.type.toLowerCase()
             parent = n.parents[0]?.analysis
@@ -39,7 +39,8 @@ class Analyzer
                     #computation
                     #-- none
                     #memory
-                    #-- none    (#d.mem.result = d.wOut*d.hOut*d.chOut)
+                    #-- none 
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                     
                 when "convolution"
                     #dimensions
@@ -62,6 +63,7 @@ class Analyzer
                     d.comp.macc = (kernel_w*kernel_h)*(d.wOut*d.hOut)*d.chIn*d.chOut
                     #memory
                     d.mem.param = (kernel_w*kernel_h)*d.chIn*d.chOut
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                 
                 when "innerproduct", "inner_product"
                     #dimensions
@@ -76,7 +78,7 @@ class Analyzer
                     d.comp.macc = (d.wIn*d.hIn)*d.chIn*d.chOut
                     #memory
                     d.mem.param = d.wIn*d.hIn*d.chIn*d.chOut
-                    
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                 
                 when "pooling"
                     #dimensions
@@ -105,7 +107,7 @@ class Analyzer
                     else    
                         onerror "Unknown pooling type #{pooltype}"
                     #memory
-                    #-- none
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                 
                 when "batchnorm"
                     #dimensions
@@ -121,6 +123,7 @@ class Analyzer
                     d.comp.div = d.wIn*d.hIn*d.chIn
                     #memory
                     d.mem.param = d.chIn*2
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
             
                 when "lrn"
                     #dimensions
@@ -141,6 +144,7 @@ class Analyzer
                     d.comp.div = num_inputs*2       # (α/n)*... + divide by sum
                     #memory
                     d.mem.param = 2  # alpha, beta
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                 
                 when "concat"
                     #dimensions
@@ -157,7 +161,7 @@ class Analyzer
                     #computation
                     # --none
                     #memory
-                    # --none                    
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
      
                 when "relu", "dropout"
                     #dimensions
@@ -169,7 +173,7 @@ class Analyzer
                     #computation
                     d.comp.comp = d.wIn*d.hIn*d.chIn
                     #memory
-                    # --none
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                     
                 when "softmax", "softmaxwithloss", "softmax_loss"
                     #dimensions
@@ -183,7 +187,7 @@ class Analyzer
                     d.comp.add = d.wIn*d.hIn*d.chIn
                     d.comp.div = d.wIn*d.hIn*d.chIn
                     #memory
-                    # --none
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                     
                 when "flatten"
                     #dimensions
@@ -195,7 +199,7 @@ class Analyzer
                     #computation
                     # --none
                     #memory
-                    # --none
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                     
                 when "eltwise"
                     #dimensions
@@ -220,7 +224,7 @@ class Analyzer
                     else
                         onerror 'ELTWISE: unknown operation '+op
                     #memory
-                    # --none
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                     
                 when "deconvolution"
                     #dimensions
@@ -242,6 +246,7 @@ class Analyzer
                     d.comp.macc = d.chIn*d.chOut*d.wOut*d.hOut*(kernel_w/stride_w)*(kernel_h/stride_h)
                     #memory
                     d.mem.param = kernel_w*kernel_h*d.chIn*d.chOut
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                     
                 when "crop"
                     #dimensions
@@ -256,8 +261,8 @@ class Analyzer
                     #computation
                     # --none
                     #memory
-                    # --none
-                
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
+                                    
                 when "implicit"
                     #dimensions
                     ## assume pass-through
@@ -270,7 +275,7 @@ class Analyzer
                     #computation
                     # --none
                     #memory
-                    # --none
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
                 
                 else # unknown layer;  print error message;
                     onerror('Unknown Layer: '+layertype)
