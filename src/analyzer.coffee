@@ -15,6 +15,7 @@ class Analyzer
             d.chIn = d.chOut = 0
             d.comp = {macc: 0, comp: 0, add: 0, div: 0, exp: 0}
             d.mem  = {activation: 0, param: 0}
+            d.variants = [];
         
             layertype = n.type.toLowerCase()
             parent = n.parents[0]?.analysis
@@ -64,6 +65,48 @@ class Analyzer
                     #memory
                     d.mem.param = (kernel_w*kernel_h)*d.chIn*d.chOut
                     d.mem.activation = d.wOut*d.hOut*d.chOut
+                    # CACHE AND BANDWIDTH for Implementation Variants
+                    d.variants.push({
+                      name  : "complete outputs, input cache"
+                      cache : d.chIn*kernel_h*d.wIn +          # line buffers
+                              d.chIn*kernel_h*kernel_w         # param cache
+                      read  : d.chOut*d.chIn*(d.wIn*d.hIn)
+                      write : d.chOut*(d.wIn*d.hIn)            # ideal
+                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                    })
+                    d.variants.push({
+                      name  : "complete inputs, input cache"
+                      cache : kernel_h*d.wIn +         # line buffers
+                              d.chIn*kernel_h*kernel_w # param cache
+                      read  : d.chIn*((d.chOut+1)*(d.wIn*d.hIn))
+                      write : d.chIn*((d.chOut)*(d.wIn*d.hIn))
+                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                    })
+                    d.variants.push({
+                      name  : "complete inputs, input + output cache"
+                      cache : kernel_h*d.wIn +           # line buffers
+                              d.chIn*kernel_h*kernel_w + # param cache
+                              d.wIn*d.hIn*d.chOut        # output cache
+                      read  : d.chIn*(d.wIn*d.hIn)  # ideal
+                      write : d.chOut*(d.wIn*d.hIn) # ideal
+                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                    })
+                    d.variants.push({
+                      name  : "streaming, input cache"
+                      cache : d.chIn*kernel_h*d.wIn
+                      read  : 0
+                      write : 0
+                      conf  : d.hIn*(d.chIn*d.chOut*(kernel_w*kernel_h))
+                    })
+                    d.variants.push({
+                      name  : "streaming, input + config cache"
+                      cache : d.chIn*kernel_h*d.wIn +
+                              d.chIn*d.chOut*(kernel_h*kernel_w)
+                      read  : 0
+                      write : 0
+                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                    })
+                    
                 
                 when "innerproduct", "inner_product"
                     #dimensions

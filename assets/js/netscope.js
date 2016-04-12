@@ -23,6 +23,7 @@ module.exports = Analyzer = (function() {
         activation: 0,
         param: 0
       };
+      d.variants = [];
       layertype = n.type.toLowerCase();
       parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
       switch (layertype) {
@@ -62,6 +63,41 @@ module.exports = Analyzer = (function() {
           d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
           d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut;
           d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.variants.push({
+            name: "complete outputs, input cache",
+            cache: d.chIn * kernel_h * d.wIn + d.chIn * kernel_h * kernel_w,
+            read: d.chOut * d.chIn * (d.wIn * d.hIn),
+            write: d.chOut * (d.wIn * d.hIn),
+            conf: d.chOut * d.chIn * kernel_w * kernel_h
+          });
+          d.variants.push({
+            name: "complete inputs, input cache",
+            cache: kernel_h * d.wIn + d.chIn * kernel_h * kernel_w,
+            read: d.chIn * ((d.chOut + 1) * (d.wIn * d.hIn)),
+            write: d.chIn * (d.chOut * (d.wIn * d.hIn)),
+            conf: d.chOut * d.chIn * kernel_w * kernel_h
+          });
+          d.variants.push({
+            name: "complete inputs, input + output cache",
+            cache: kernel_h * d.wIn + d.chIn * kernel_h * kernel_w + d.wIn * d.hIn * d.chOut,
+            read: d.chIn * (d.wIn * d.hIn),
+            write: d.chOut * (d.wIn * d.hIn),
+            conf: d.chOut * d.chIn * kernel_w * kernel_h
+          });
+          d.variants.push({
+            name: "streaming, input cache",
+            cache: d.chIn * kernel_h * d.wIn,
+            read: 0,
+            write: 0,
+            conf: d.hIn * (d.chIn * d.chOut * (kernel_w * kernel_h))
+          });
+          d.variants.push({
+            name: "streaming, input + config cache",
+            cache: d.chIn * kernel_h * d.wIn + d.chIn * d.chOut * (kernel_h * kernel_w),
+            read: 0,
+            write: 0,
+            conf: d.chOut * d.chIn * kernel_w * kernel_h
+          });
           break;
         case "innerproduct":
         case "inner_product":
@@ -2568,7 +2604,7 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.generateTable = function() {
-    var entry, id, j, len, n, ref, tbl;
+    var entry, id, j, k, key, len, len1, n, ref, tbl, val, variant, variantcopy;
     entry = {
       name: 'start'
     };
@@ -2577,6 +2613,16 @@ module.exports = Renderer = (function() {
     ref = this.net.sortTopologically();
     for (j = 0, len = ref.length; j < len; j++) {
       n = ref[j];
+      variantcopy = _.extend([], n.analysis.variants);
+      for (k = 0, len1 = variantcopy.length; k < len1; k++) {
+        variant = variantcopy[k];
+        for (key in variant) {
+          val = variant[key];
+          if (val > 0) {
+            variant[key] = this.toSuffixForm(val);
+          }
+        }
+      }
       id++;
       entry = {
         ID: id,
@@ -2587,7 +2633,8 @@ module.exports = Renderer = (function() {
         ch_out: n.analysis.chOut,
         dim_out: n.analysis.wOut + 'x' + n.analysis.hOut,
         ops_raw: n.analysis.comp,
-        mem_raw: n.analysis.mem
+        mem_raw: n.analysis.mem,
+        implementations: n.analysis.variants
       };
       tbl.push(entry);
     }

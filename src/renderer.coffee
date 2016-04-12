@@ -48,7 +48,12 @@ class Renderer
         entry = {name: 'start'}
         tbl = []
         id = 0
-        for n in @net.sortTopologically()
+        # Build up Layer Table
+        for n in @net.sortTopologically()            
+            # summarize Values in Variant Implementations
+            variantcopy = _.extend([],n.analysis.variants)
+            for variant in variantcopy
+              variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
             id++
             entry = {
                 ID: id
@@ -60,7 +65,8 @@ class Renderer
                 dim_out: n.analysis.wOut+'x'+n.analysis.hOut
                 ops_raw: n.analysis.comp
                 mem_raw: n.analysis.mem
-            }                
+                implementations: n.analysis.variants
+            }         
             tbl.push(entry)
         return tbl
         
