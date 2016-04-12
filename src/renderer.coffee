@@ -48,12 +48,19 @@ class Renderer
         entry = {name: 'start'}
         tbl = []
         id = 0
+        worstcasepervariant = null
+        
         # Build up Layer Table
         for n in @net.sortTopologically()            
             # summarize Values in Variant Implementations
-            variantcopy = _.extend([],n.analysis.variants)
-            for variant in variantcopy
-              variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
+            if (n.analysis.variants.length > 0)
+              if worstcasepervariant == null # initial copy
+                worstcasepervariant = _.cloneDeep(n.analysis.variants)
+              variantcopy = _.extend([],n.analysis.variants)
+              for variant,idx in variantcopy
+                worstcasepervariant[idx][key] = val for key,val of variant when worstcasepervariant[idx][key] < val
+                variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
+            
             id++
             entry = {
                 ID: id
@@ -68,6 +75,17 @@ class Renderer
                 implementations: n.analysis.variants
             }         
             tbl.push(entry)
+            
+          
+        # worst case variant
+        for variant in worstcasepervariant
+          variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
+        entry = {
+            ID: 999
+            name: "TOTAL"
+            implementations: worstcasepervariant
+        }
+        tbl.push(entry)
         return tbl
         
     toSuffixForm: (num, decimals = 2) ->

@@ -2604,22 +2604,34 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.generateTable = function() {
-    var entry, id, j, k, key, len, len1, n, ref, tbl, val, variant, variantcopy;
+    var entry, id, idx, j, k, key, l, len, len1, len2, n, ref, tbl, val, variant, variantcopy, worstcasepervariant;
     entry = {
       name: 'start'
     };
     tbl = [];
     id = 0;
+    worstcasepervariant = null;
     ref = this.net.sortTopologically();
     for (j = 0, len = ref.length; j < len; j++) {
       n = ref[j];
-      variantcopy = _.extend([], n.analysis.variants);
-      for (k = 0, len1 = variantcopy.length; k < len1; k++) {
-        variant = variantcopy[k];
-        for (key in variant) {
-          val = variant[key];
-          if (val > 0) {
-            variant[key] = this.toSuffixForm(val);
+      if (n.analysis.variants.length > 0) {
+        if (worstcasepervariant === null) {
+          worstcasepervariant = _.cloneDeep(n.analysis.variants);
+        }
+        variantcopy = _.extend([], n.analysis.variants);
+        for (idx = k = 0, len1 = variantcopy.length; k < len1; idx = ++k) {
+          variant = variantcopy[idx];
+          for (key in variant) {
+            val = variant[key];
+            if (worstcasepervariant[idx][key] < val) {
+              worstcasepervariant[idx][key] = val;
+            }
+          }
+          for (key in variant) {
+            val = variant[key];
+            if (val > 0) {
+              variant[key] = this.toSuffixForm(val);
+            }
           }
         }
       }
@@ -2638,6 +2650,21 @@ module.exports = Renderer = (function() {
       };
       tbl.push(entry);
     }
+    for (l = 0, len2 = worstcasepervariant.length; l < len2; l++) {
+      variant = worstcasepervariant[l];
+      for (key in variant) {
+        val = variant[key];
+        if (val > 0) {
+          variant[key] = this.toSuffixForm(val);
+        }
+      }
+    }
+    entry = {
+      ID: 999,
+      name: "TOTAL",
+      implementations: worstcasepervariant
+    };
+    tbl.push(entry);
     return tbl;
   };
 
