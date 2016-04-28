@@ -1,3 +1,5 @@
+do_variants_analysis = false
+
 module.exports =
 class Analyzer
     constructor: ->
@@ -8,7 +10,7 @@ class Analyzer
         #              batch   channel  width   height
         #               chIn    chOut   wIn     wOut
     
-        for n in net.nodes
+        for n in net.sortTopologically()
             # init to zero
             d = n.analysis
             d.wIn  = d.hIn = d.wOut = d.hOut = 0
@@ -66,46 +68,54 @@ class Analyzer
                     d.mem.param = (kernel_w*kernel_h)*d.chIn*d.chOut
                     d.mem.activation = d.wOut*d.hOut*d.chOut
                     # CACHE AND BANDWIDTH for Implementation Variants
-                    d.variants.push({
-                      name  : "complete outputs, input cache"
-                      cache : d.chIn*kernel_h*d.wIn +          # line buffers
-                              d.chIn*kernel_h*kernel_w         # param cache
-                      read  : d.chOut*d.chIn*(d.wIn*d.hIn)
-                      write : d.chOut*(d.wIn*d.hIn)            # ideal
-                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
-                    })
-                    d.variants.push({
-                      name  : "complete inputs, input cache"
-                      cache : kernel_h*d.wIn +         # line buffers
-                              d.chIn*kernel_h*kernel_w # param cache
-                      read  : d.chIn*((d.chOut+1)*(d.wIn*d.hIn))
-                      write : d.chIn*((d.chOut)*(d.wIn*d.hIn))
-                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
-                    })
-                    d.variants.push({
-                      name  : "complete inputs, input + output cache"
-                      cache : kernel_h*d.wIn +           # line buffers
-                              d.chIn*kernel_h*kernel_w + # param cache
-                              d.wIn*d.hIn*d.chOut        # output cache
-                      read  : d.chIn*(d.wIn*d.hIn)  # ideal
-                      write : d.chOut*(d.wIn*d.hIn) # ideal
-                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
-                    })
-                    d.variants.push({
-                      name  : "streaming, input cache"
-                      cache : d.chIn*kernel_h*d.wIn
-                      read  : 0
-                      write : 0
-                      conf  : d.hIn*(d.chIn*d.chOut*(kernel_w*kernel_h))
-                    })
-                    d.variants.push({
-                      name  : "streaming, input + config cache"
-                      cache : d.chIn*kernel_h*d.wIn +
-                              d.chIn*d.chOut*(kernel_h*kernel_w)
-                      read  : 0
-                      write : 0
-                      conf  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
-                    })
+                    if (do_variants_analysis)
+                        d.variants.push({
+                          name  : "complete outputs, input cache"
+                          cache : d.chIn*kernel_h*d.wIn +          # line buffers
+                                  d.chIn*kernel_h*kernel_w         # param cache
+                          readBW  : d.chOut*d.chIn*(d.wIn*d.hIn)
+                          writeBW : d.chOut*(d.wOut*d.hOut)          # ideal
+                          confBW  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                        })
+                        d.variants.push({
+                          name  : "complete inputs, input cache"
+                          cache : kernel_h*d.wIn +         # line buffers
+                                  d.chIn*kernel_h*kernel_w # param cache
+                          readBW  : d.chIn*((d.chOut+1)*(d.wIn*d.hIn))
+                          writeBW : d.chIn*((d.chOut)*(d.wOut*d.hOut))
+                          confBW  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                        })
+                        d.variants.push({
+                          name  : "complete inputs, input + output cache"
+                          cache : kernel_h*d.wIn +           # line buffers
+                                  d.chIn*kernel_h*kernel_w + # param cache
+                                  d.wIn*d.hIn*d.chOut        # output cache
+                          readBW  : d.chIn*(d.wIn*d.hIn)  # ideal
+                          writeBW : d.chOut*(d.wOut*d.hOut) # ideal
+                          confBW  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                        })
+                        d.variants.push({
+                          name  : "streaming, input cache"
+                          cache : d.chIn*kernel_h*d.wIn
+                          readBW  : d.chIn*(d.wIn*d.hIn)
+                          writeBW : d.chOut*(d.wOut*d.hOut)
+                          confBW  : d.hIn*(d.chIn*d.chOut*(kernel_w*kernel_h))
+                        })
+                        d.variants.push({
+                          name  : "streaming, input + config cache"
+                          cache : d.chIn*kernel_h*d.wIn +
+                                  d.chIn*d.chOut*(kernel_h*kernel_w)
+                          readBW  : d.chIn*(d.wIn*d.hIn)
+                          writeBW : d.chOut*(d.wOut*d.hOut)
+                          confBW  : d.chOut*d.chIn*kernel_w*kernel_h # ideal
+                        })
+                        d.variants.push({
+                          name  : "streaming, temp."
+                          img_cache : if kernel_h > 1 then d.chIn*kernel_h*d.wIn else d.chIn
+                          img_dim   : d.chIn+"ch ∙ "+d.wIn+" × "+kernel_h+" × 32b"
+                          flt_cache : d.chIn*d.chOut*(kernel_h*kernel_w)
+                          squeeze_cache : if n.name.indexOf("squeeze") > -1 then d.chOut*d.wOut*d.hOut else ""
+                        })
                     
                 
                 when "innerproduct", "inner_product"

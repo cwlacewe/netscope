@@ -1,4 +1,4 @@
-name: 'FCN'
+name: 'FCN 16s'
 
 layer {
     type: 'data'
@@ -17,7 +17,7 @@ force_backward: true
 
 layers { bottom: 'data' top: 'conv1_1' name: 'conv1_1' type: CONVOLUTION
   blobs_lr: 1 blobs_lr: 2 weight_decay: 1 weight_decay: 0
-  convolution_param { engine: CAFFE num_output: 64 pad: 100 kernel_size: 3 } }
+  convolution_param { engine: CAFFE num_output: 64 pad: 1 kernel_size: 3 } }
 layers { bottom: 'conv1_1' top: 'conv1_1' name: 'relu1_1' type: RELU }
 layers { bottom: 'conv1_1' top: 'conv1_2' name: 'conv1_2' type: CONVOLUTION
   blobs_lr: 1 blobs_lr: 2 weight_decay: 1 weight_decay: 0

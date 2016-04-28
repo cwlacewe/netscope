@@ -30,6 +30,7 @@ generateNetwork = (layers, header) ->
         # Caffe allows top to be a layer which isn't explicitly
         # defined. Create an implicit layer if this is detected.
         if not node?
+            debugger
             node = net.createNode name, 'implicit'
             nodeTable[name] = node
         return node
@@ -69,14 +70,18 @@ generateNetwork = (layers, header) ->
             curNode = inplaceChild
         curNode.addChildren children
     # Patch in data layer parameters.
-    if header?.input? and header?.input_dim?
+    if header?.input? and (header?.input_dim? or header?.input_shape?.dim?)
         inputs = [].concat header.input
-        dims = header.input_dim
+        dims = header.input_dim or header.input_shape.dim
         if inputs.length==(dims.length*0.25)
             for input, i in inputs
                 dataNode = nodeTable[input]
                 dataNode.type = 'data'
-                dataNode.attribs.shape = dims.slice i*4, (i+1)*4
+                dataNode.attribs.input_param = {
+                    shape: {
+                        dim: dims.slice i*4, (i+1)*4
+                    }
+                }
         else
             console.log 'Inconsistent input dimensions.'
     return net
@@ -85,6 +90,9 @@ module.exports =
 class CaffeParser
     @parse : (txt, phase) ->
         [header, layerDesc] = Parser.parse txt
+        # extract input_shape field from layerDesc to header
+        if layerDesc[0].input_dim? or layerDesc[0].input_shape?
+            _.extend(header,layerDesc[0])
         layers = generateLayers layerDesc, phase
         network = generateNetwork layers, header
         NetworkAnalyzer = new Analyzer()

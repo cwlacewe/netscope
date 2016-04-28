@@ -1,6 +1,10 @@
 Tableify = require('tableify')
 require('tablesorter')
 
+
+do_variants_analysis = true
+
+
 module.exports =
 class Renderer
     constructor: (@net, @parent, @table) ->
@@ -14,9 +18,9 @@ class Renderer
         @graph.setDefaultEdgeLabel ( -> {} )
         @graph.setGraph
             rankdir: @layoutDirection
-            ranksep: 20, # Vertical node separation
-            nodesep: 10, # Horizontal node separation
-            edgesep: 20, # Horizontal edge separation
+            ranksep: 10, # Vertical node separation
+            nodesep: 5, # Horizontal node separation
+            edgesep: 10, # Horizontal edge separation
             marginx:  0, # Horizontal graph margin
             marginy:  0  # Vertical graph margin
 
@@ -52,14 +56,16 @@ class Renderer
         
         # Build up Layer Table
         for n in @net.sortTopologically()            
+            
             # summarize Values in Variant Implementations
-            if (n.analysis.variants.length > 0)
-              if worstcasepervariant == null # initial copy
-                worstcasepervariant = _.cloneDeep(n.analysis.variants)
-              variantcopy = _.extend([],n.analysis.variants)
-              for variant,idx in variantcopy
-                worstcasepervariant[idx][key] = val for key,val of variant when worstcasepervariant[idx][key] < val
-                variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
+            if (do_variants_analysis)
+                if (n.analysis.variants.length > 0)
+                    if worstcasepervariant == null # initial copy
+                        worstcasepervariant = _.cloneDeep(n.analysis.variants)
+                    variantcopy = _.extend([],n.analysis.variants)
+                    for variant,idx in variantcopy
+                        worstcasepervariant[idx][key] = val for key,val of variant when worstcasepervariant[idx][key] < val
+                        variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
             
             id++
             entry = {
@@ -72,20 +78,20 @@ class Renderer
                 dim_out: n.analysis.wOut+'x'+n.analysis.hOut
                 ops_raw: n.analysis.comp
                 mem_raw: n.analysis.mem
-                implementations: n.analysis.variants
             }         
+            if (do_variants_analysis) then entry.implementations = n.analysis.variants;
             tbl.push(entry)
-            
-          
-        # worst case variant
-        for variant in worstcasepervariant
-          variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
-        entry = {
-            ID: 999
-            name: "TOTAL"
-            implementations: worstcasepervariant
-        }
-        tbl.push(entry)
+        
+        if (do_variants_analysis)
+            # worst case variant summary
+            for variant in worstcasepervariant
+                variant[key] = @toSuffixForm(val) for key,val of variant when val > 0
+            entry = {
+                ID: 999
+                name: "Worst-Case Requirements"
+                implementations: worstcasepervariant
+            }
+            tbl.push(entry)
         return tbl
         
     toSuffixForm: (num, decimals = 2) ->
@@ -98,6 +104,7 @@ class Renderer
             factor = Math.pow(10, exponent)
             if (num > factor)
                 return Math.round(num/factor*decimals)/decimals+suffix
+        # too small, no suffix
         return num
         
     summarizeTable: (tbl) ->
@@ -158,10 +165,11 @@ class Renderer
         summary = @summarizeTable(detail)
         $(@table).html('<h3>Summary:</h3>'+Tableify(summary)+
                        '<h3>Details:</h3>'+Tableify(detail));
+                       
         # Add Sorting Headers
         $(@table+' table').tablesorter()
+        
         # Add Click-to-Scroll Handlers
-
         # Closure Function that executes scroll:
         scroll_to = (el) ->
             return () -> 
@@ -182,6 +190,25 @@ class Renderer
             $node_elem  = $('div[id^="node-'+$table_elem.text()+'"]')
             $table_elem.click( scroll_to $node_elem )
             $node_elem.click( scroll_to $table_elem )
+            
+        # Calculate Per-Layer Statistics
+        areatbl = []
+        for entry in detail when (entry.type == "Convolution" or entry.type == "Concat" or entry.type == "SoftmaxWithLoss")
+            # extract input dimension:
+            dim_in = entry.dim_in?.split("x").pop()
+            # add entry
+            suffix = " orig"
+            if @net.name.indexOf("base2") > -1 then suffix = " b2"
+            if @net.name.indexOf("3x3") > -1 then suffix = " 3x3/16"
+            line = {}
+            line["layer"] = entry.name;
+            line["capacity"+suffix] = if entry.mem_raw?.activation > 0 then entry.mem_raw.activation else ""
+            line["macc "+suffix] = if entry.ops_raw?.macc > 0 then entry.ops_raw.macc else ""
+            line["param "+suffix] = if entry.mem_raw?.param > 0 then entry.mem_raw.param else ""
+            line["ch_out "+suffix] = entry.ch_out
+            line["width "+suffix] = dim_in
+            areatbl.push(line)
+        $(Tableify(areatbl)).appendTo(@table)
         return null
 
     insertNode: (layers) ->
@@ -210,7 +237,10 @@ class Renderer
             ''
 
     insertLink: (src, dst) ->
-        lbl = src.analysis.chOut+'ch ⋅ '+src.analysis.wOut+'×'+src.analysis.hOut                       
+        if not @iconify
+            lbl = src.analysis.chOut+'ch ⋅ '+src.analysis.wOut+'×'+src.analysis.hOut     
+        else
+            lbl = ''                  
         @graph.setEdge(src.name, dst.name, { arrowhead: 'vee', label: lbl } );
 
     renderKey:(key) ->

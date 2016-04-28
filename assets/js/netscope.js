@@ -1,12 +1,14 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Analyzer;
+var Analyzer, do_variants_analysis;
+
+do_variants_analysis = false;
 
 module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
     var analysis, d, failed, i, isglobal, j, k, kernel, kernel_h, kernel_w, key, layertype, len, len1, len2, mem, mode, n, num_inputs, num_ops, numout, op, ops, p, pad, pad_h, pad_w, params, parent, parent2, pooltype, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
-    ref = net.nodes;
+    ref = net.sortTopologically();
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
       d = n.analysis;
@@ -63,41 +65,50 @@ module.exports = Analyzer = (function() {
           d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
           d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut;
           d.mem.activation = d.wOut * d.hOut * d.chOut;
-          d.variants.push({
-            name: "complete outputs, input cache",
-            cache: d.chIn * kernel_h * d.wIn + d.chIn * kernel_h * kernel_w,
-            read: d.chOut * d.chIn * (d.wIn * d.hIn),
-            write: d.chOut * (d.wIn * d.hIn),
-            conf: d.chOut * d.chIn * kernel_w * kernel_h
-          });
-          d.variants.push({
-            name: "complete inputs, input cache",
-            cache: kernel_h * d.wIn + d.chIn * kernel_h * kernel_w,
-            read: d.chIn * ((d.chOut + 1) * (d.wIn * d.hIn)),
-            write: d.chIn * (d.chOut * (d.wIn * d.hIn)),
-            conf: d.chOut * d.chIn * kernel_w * kernel_h
-          });
-          d.variants.push({
-            name: "complete inputs, input + output cache",
-            cache: kernel_h * d.wIn + d.chIn * kernel_h * kernel_w + d.wIn * d.hIn * d.chOut,
-            read: d.chIn * (d.wIn * d.hIn),
-            write: d.chOut * (d.wIn * d.hIn),
-            conf: d.chOut * d.chIn * kernel_w * kernel_h
-          });
-          d.variants.push({
-            name: "streaming, input cache",
-            cache: d.chIn * kernel_h * d.wIn,
-            read: 0,
-            write: 0,
-            conf: d.hIn * (d.chIn * d.chOut * (kernel_w * kernel_h))
-          });
-          d.variants.push({
-            name: "streaming, input + config cache",
-            cache: d.chIn * kernel_h * d.wIn + d.chIn * d.chOut * (kernel_h * kernel_w),
-            read: 0,
-            write: 0,
-            conf: d.chOut * d.chIn * kernel_w * kernel_h
-          });
+          if (do_variants_analysis) {
+            d.variants.push({
+              name: "complete outputs, input cache",
+              cache: d.chIn * kernel_h * d.wIn + d.chIn * kernel_h * kernel_w,
+              readBW: d.chOut * d.chIn * (d.wIn * d.hIn),
+              writeBW: d.chOut * (d.wOut * d.hOut),
+              confBW: d.chOut * d.chIn * kernel_w * kernel_h
+            });
+            d.variants.push({
+              name: "complete inputs, input cache",
+              cache: kernel_h * d.wIn + d.chIn * kernel_h * kernel_w,
+              readBW: d.chIn * ((d.chOut + 1) * (d.wIn * d.hIn)),
+              writeBW: d.chIn * (d.chOut * (d.wOut * d.hOut)),
+              confBW: d.chOut * d.chIn * kernel_w * kernel_h
+            });
+            d.variants.push({
+              name: "complete inputs, input + output cache",
+              cache: kernel_h * d.wIn + d.chIn * kernel_h * kernel_w + d.wIn * d.hIn * d.chOut,
+              readBW: d.chIn * (d.wIn * d.hIn),
+              writeBW: d.chOut * (d.wOut * d.hOut),
+              confBW: d.chOut * d.chIn * kernel_w * kernel_h
+            });
+            d.variants.push({
+              name: "streaming, input cache",
+              cache: d.chIn * kernel_h * d.wIn,
+              readBW: d.chIn * (d.wIn * d.hIn),
+              writeBW: d.chOut * (d.wOut * d.hOut),
+              confBW: d.hIn * (d.chIn * d.chOut * (kernel_w * kernel_h))
+            });
+            d.variants.push({
+              name: "streaming, input + config cache",
+              cache: d.chIn * kernel_h * d.wIn + d.chIn * d.chOut * (kernel_h * kernel_w),
+              readBW: d.chIn * (d.wIn * d.hIn),
+              writeBW: d.chOut * (d.wOut * d.hOut),
+              confBW: d.chOut * d.chIn * kernel_w * kernel_h
+            });
+            d.variants.push({
+              name: "streaming, temp.",
+              img_cache: kernel_h > 1 ? d.chIn * kernel_h * d.wIn : d.chIn,
+              img_dim: d.chIn + "ch ∙ " + d.wIn + " × " + kernel_h + " × 32b",
+              flt_cache: d.chIn * d.chOut * (kernel_h * kernel_w),
+              squeeze_cache: n.name.indexOf("squeeze") > -1 ? d.chOut * d.wOut * d.hOut : ""
+            });
+          }
           break;
         case "innerproduct":
         case "inner_product":
@@ -471,7 +482,7 @@ generateLayers = function(descriptors, phase) {
 };
 
 generateNetwork = function(layers, header) {
-  var children, curNode, dataNode, dims, getNodes, getSingleNode, i, implicitLayers, inplaceChild, inplaceOps, inplaceTable, input, inputs, j, k, l, layer, len, len1, len2, len3, m, n, net, node, nodeTable;
+  var children, curNode, dataNode, dims, getNodes, getSingleNode, i, implicitLayers, inplaceChild, inplaceOps, inplaceTable, input, inputs, j, k, l, layer, len, len1, len2, len3, m, n, net, node, nodeTable, ref;
   nodeTable = {};
   implicitLayers = [];
   net = new Network(header.name);
@@ -480,6 +491,7 @@ generateNetwork = function(layers, header) {
       var node;
       node = nodeTable[name];
       if (node == null) {
+        debugger;
         node = net.createNode(name, 'implicit');
         nodeTable[name] = node;
       }
@@ -532,15 +544,19 @@ generateNetwork = function(layers, header) {
     }
     curNode.addChildren(children);
   }
-  if (((header != null ? header.input : void 0) != null) && ((header != null ? header.input_dim : void 0) != null)) {
+  if (((header != null ? header.input : void 0) != null) && (((header != null ? header.input_dim : void 0) != null) || ((header != null ? (ref = header.input_shape) != null ? ref.dim : void 0 : void 0) != null))) {
     inputs = [].concat(header.input);
-    dims = header.input_dim;
+    dims = header.input_dim || header.input_shape.dim;
     if (inputs.length === (dims.length * 0.25)) {
       for (i = n = 0, len3 = inputs.length; n < len3; i = ++n) {
         input = inputs[i];
         dataNode = nodeTable[input];
         dataNode.type = 'data';
-        dataNode.attribs.shape = dims.slice(i * 4, (i + 1) * 4);
+        dataNode.attribs.input_param = {
+          shape: {
+            dim: dims.slice(i * 4, (i + 1) * 4)
+          }
+        };
       }
     } else {
       console.log('Inconsistent input dimensions.');
@@ -555,6 +571,9 @@ module.exports = CaffeParser = (function() {
   CaffeParser.parse = function(txt, phase) {
     var NetworkAnalyzer, header, layerDesc, layers, network, ref;
     ref = Parser.parse(txt), header = ref[0], layerDesc = ref[1];
+    if ((layerDesc[0].input_dim != null) || (layerDesc[0].input_shape != null)) {
+      _.extend(header, layerDesc[0]);
+    }
     layers = generateLayers(layerDesc, phase);
     network = generateNetwork(layers, header);
     NetworkAnalyzer = new Analyzer();
@@ -2530,12 +2549,14 @@ module.exports = Network = (function() {
 
 
 },{}],9:[function(require,module,exports){
-var Renderer, Tableify,
+var Renderer, Tableify, do_variants_analysis,
   hasProp = {}.hasOwnProperty;
 
 Tableify = require('tableify');
 
 require('tablesorter');
+
+do_variants_analysis = true;
 
 module.exports = Renderer = (function() {
   function Renderer(net, parent1, table) {
@@ -2555,9 +2576,9 @@ module.exports = Renderer = (function() {
     }));
     return this.graph.setGraph({
       rankdir: this.layoutDirection,
-      ranksep: 20,
-      nodesep: 10,
-      edgesep: 20,
+      ranksep: 10,
+      nodesep: 5,
+      edgesep: 10,
       marginx: 0,
       marginy: 0
     });
@@ -2614,23 +2635,25 @@ module.exports = Renderer = (function() {
     ref = this.net.sortTopologically();
     for (j = 0, len = ref.length; j < len; j++) {
       n = ref[j];
-      if (n.analysis.variants.length > 0) {
-        if (worstcasepervariant === null) {
-          worstcasepervariant = _.cloneDeep(n.analysis.variants);
-        }
-        variantcopy = _.extend([], n.analysis.variants);
-        for (idx = k = 0, len1 = variantcopy.length; k < len1; idx = ++k) {
-          variant = variantcopy[idx];
-          for (key in variant) {
-            val = variant[key];
-            if (worstcasepervariant[idx][key] < val) {
-              worstcasepervariant[idx][key] = val;
-            }
+      if (do_variants_analysis) {
+        if (n.analysis.variants.length > 0) {
+          if (worstcasepervariant === null) {
+            worstcasepervariant = _.cloneDeep(n.analysis.variants);
           }
-          for (key in variant) {
-            val = variant[key];
-            if (val > 0) {
-              variant[key] = this.toSuffixForm(val);
+          variantcopy = _.extend([], n.analysis.variants);
+          for (idx = k = 0, len1 = variantcopy.length; k < len1; idx = ++k) {
+            variant = variantcopy[idx];
+            for (key in variant) {
+              val = variant[key];
+              if (worstcasepervariant[idx][key] < val) {
+                worstcasepervariant[idx][key] = val;
+              }
+            }
+            for (key in variant) {
+              val = variant[key];
+              if (val > 0) {
+                variant[key] = this.toSuffixForm(val);
+              }
             }
           }
         }
@@ -2645,26 +2668,30 @@ module.exports = Renderer = (function() {
         ch_out: n.analysis.chOut,
         dim_out: n.analysis.wOut + 'x' + n.analysis.hOut,
         ops_raw: n.analysis.comp,
-        mem_raw: n.analysis.mem,
-        implementations: n.analysis.variants
+        mem_raw: n.analysis.mem
+      };
+      if (do_variants_analysis) {
+        entry.implementations = n.analysis.variants;
+      }
+      tbl.push(entry);
+    }
+    if (do_variants_analysis) {
+      for (l = 0, len2 = worstcasepervariant.length; l < len2; l++) {
+        variant = worstcasepervariant[l];
+        for (key in variant) {
+          val = variant[key];
+          if (val > 0) {
+            variant[key] = this.toSuffixForm(val);
+          }
+        }
+      }
+      entry = {
+        ID: 999,
+        name: "Worst-Case Requirements",
+        implementations: worstcasepervariant
       };
       tbl.push(entry);
     }
-    for (l = 0, len2 = worstcasepervariant.length; l < len2; l++) {
-      variant = worstcasepervariant[l];
-      for (key in variant) {
-        val = variant[key];
-        if (val > 0) {
-          variant[key] = this.toSuffixForm(val);
-        }
-      }
-    }
-    entry = {
-      ID: 999,
-      name: "TOTAL",
-      implementations: worstcasepervariant
-    };
-    tbl.push(entry);
     return tbl;
   };
 
@@ -2799,7 +2826,7 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.renderTable = function() {
-    var $node_elem, $table_elem, detail, j, len, ref, row, row_array, scroll_to, summary, summary_body, summary_table;
+    var $node_elem, $table_elem, areatbl, detail, dim_in, entry, j, k, len, len1, line, ref, ref1, ref2, ref3, ref4, row, row_array, scroll_to, suffix, summary, summary_body, summary_table;
     detail = this.generateTable();
     summary = this.summarizeTable(detail);
     $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(detail));
@@ -2831,6 +2858,30 @@ module.exports = Renderer = (function() {
       $table_elem.click(scroll_to($node_elem));
       $node_elem.click(scroll_to($table_elem));
     }
+    areatbl = [];
+    for (k = 0, len1 = detail.length; k < len1; k++) {
+      entry = detail[k];
+      if (!(entry.type === "Convolution" || entry.type === "Concat" || entry.type === "SoftmaxWithLoss")) {
+        continue;
+      }
+      dim_in = (ref1 = entry.dim_in) != null ? ref1.split("x").pop() : void 0;
+      suffix = " orig";
+      if (this.net.name.indexOf("base2") > -1) {
+        suffix = " b2";
+      }
+      if (this.net.name.indexOf("3x3") > -1) {
+        suffix = " 3x3/16";
+      }
+      line = {};
+      line["layer"] = entry.name;
+      line["capacity" + suffix] = ((ref2 = entry.mem_raw) != null ? ref2.activation : void 0) > 0 ? entry.mem_raw.activation : "";
+      line["macc " + suffix] = ((ref3 = entry.ops_raw) != null ? ref3.macc : void 0) > 0 ? entry.ops_raw.macc : "";
+      line["param " + suffix] = ((ref4 = entry.mem_raw) != null ? ref4.param : void 0) > 0 ? entry.mem_raw.param : "";
+      line["ch_out " + suffix] = entry.ch_out;
+      line["width " + suffix] = dim_in;
+      areatbl.push(line);
+    }
+    $(Tableify(areatbl)).appendTo(this.table);
     return null;
   };
 
@@ -2870,7 +2921,11 @@ module.exports = Renderer = (function() {
 
   Renderer.prototype.insertLink = function(src, dst) {
     var lbl;
-    lbl = src.analysis.chOut + 'ch ⋅ ' + src.analysis.wOut + '×' + src.analysis.hOut;
+    if (!this.iconify) {
+      lbl = src.analysis.chOut + 'ch ⋅ ' + src.analysis.wOut + '×' + src.analysis.hOut;
+    } else {
+      lbl = '';
+    }
     return this.graph.setEdge(src.name, dst.name, {
       arrowhead: 'vee',
       label: lbl
