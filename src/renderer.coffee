@@ -1,10 +1,6 @@
 Tableify = require('tableify')
 require('tablesorter')
 
-
-do_variants_analysis = true
-
-
 module.exports =
 class Renderer
     constructor: (@net, @parent, @table) ->
@@ -190,25 +186,26 @@ class Renderer
             $node_elem  = $('div[id^="node-'+$table_elem.text()+'"]')
             $table_elem.click( scroll_to $node_elem )
             $node_elem.click( scroll_to $table_elem )
-            
-        # Calculate Per-Layer Statistics
-        areatbl = []
-        for entry in detail when (entry.type == "Convolution" or entry.type == "Concat" or entry.type == "SoftmaxWithLoss")
-            # extract input dimension:
-            dim_in = entry.dim_in?.split("x").pop()
-            # add entry
-            suffix = " orig"
-            if @net.name.indexOf("base2") > -1 then suffix = " b2"
-            if @net.name.indexOf("3x3") > -1 then suffix = " 3x3/16"
-            line = {}
-            line["layer"] = entry.name;
-            line["capacity"+suffix] = if entry.mem_raw?.activation > 0 then entry.mem_raw.activation else ""
-            line["macc "+suffix] = if entry.ops_raw?.macc > 0 then entry.ops_raw.macc else ""
-            line["param "+suffix] = if entry.mem_raw?.param > 0 then entry.mem_raw.param else ""
-            line["ch_out "+suffix] = entry.ch_out
-            line["width "+suffix] = dim_in
-            areatbl.push(line)
-        $(Tableify(areatbl)).appendTo(@table)
+         
+        if do_variants_analysis
+            # Calculate Per-Layer Statistics
+            areatbl = []
+            for entry in detail when (entry.type == "Convolution" or entry.type == "Concat" or entry.type == "SoftmaxWithLoss")
+                # extract input dimension:
+                dim_in = entry.dim_in?.split("x").pop()
+                # add entry
+                suffix = " orig"
+                if @net.name.indexOf("base2") > -1 then suffix = " b2"
+                if @net.name.indexOf("3x3") > -1 then suffix = " 3x3/16"
+                line = {}
+                line["layer"] = entry.name;
+                line["capacity"+suffix] = if entry.mem_raw?.activation > 0 then entry.mem_raw.activation else ""
+                line["macc "+suffix] = if entry.ops_raw?.macc > 0 then entry.ops_raw.macc else ""
+                line["param "+suffix] = if entry.mem_raw?.param > 0 then entry.mem_raw.param else ""
+                line["ch_out "+suffix] = entry.ch_out
+                line["width "+suffix] = dim_in
+                areatbl.push(line)
+            $(Tableify(areatbl)).appendTo(@table)
         return null
 
     insertNode: (layers) ->

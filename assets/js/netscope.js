@@ -1,7 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Analyzer, do_variants_analysis;
-
-do_variants_analysis = false;
+var Analyzer;
 
 module.exports = Analyzer = (function() {
   function Analyzer() {}
@@ -2384,6 +2382,8 @@ CaffeNetwork = require('./caffe/caffe.coffee');
 
 Loader = require('./loader.coffee');
 
+window.do_variants_analysis = false;
+
 showDocumentation = function() {
   return window.location.href = 'quickstart.html';
 };
@@ -2549,14 +2549,12 @@ module.exports = Network = (function() {
 
 
 },{}],9:[function(require,module,exports){
-var Renderer, Tableify, do_variants_analysis,
+var Renderer, Tableify,
   hasProp = {}.hasOwnProperty;
 
 Tableify = require('tableify');
 
 require('tablesorter');
-
-do_variants_analysis = true;
 
 module.exports = Renderer = (function() {
   function Renderer(net, parent1, table) {
@@ -2858,30 +2856,32 @@ module.exports = Renderer = (function() {
       $table_elem.click(scroll_to($node_elem));
       $node_elem.click(scroll_to($table_elem));
     }
-    areatbl = [];
-    for (k = 0, len1 = detail.length; k < len1; k++) {
-      entry = detail[k];
-      if (!(entry.type === "Convolution" || entry.type === "Concat" || entry.type === "SoftmaxWithLoss")) {
-        continue;
+    if (do_variants_analysis) {
+      areatbl = [];
+      for (k = 0, len1 = detail.length; k < len1; k++) {
+        entry = detail[k];
+        if (!(entry.type === "Convolution" || entry.type === "Concat" || entry.type === "SoftmaxWithLoss")) {
+          continue;
+        }
+        dim_in = (ref1 = entry.dim_in) != null ? ref1.split("x").pop() : void 0;
+        suffix = " orig";
+        if (this.net.name.indexOf("base2") > -1) {
+          suffix = " b2";
+        }
+        if (this.net.name.indexOf("3x3") > -1) {
+          suffix = " 3x3/16";
+        }
+        line = {};
+        line["layer"] = entry.name;
+        line["capacity" + suffix] = ((ref2 = entry.mem_raw) != null ? ref2.activation : void 0) > 0 ? entry.mem_raw.activation : "";
+        line["macc " + suffix] = ((ref3 = entry.ops_raw) != null ? ref3.macc : void 0) > 0 ? entry.ops_raw.macc : "";
+        line["param " + suffix] = ((ref4 = entry.mem_raw) != null ? ref4.param : void 0) > 0 ? entry.mem_raw.param : "";
+        line["ch_out " + suffix] = entry.ch_out;
+        line["width " + suffix] = dim_in;
+        areatbl.push(line);
       }
-      dim_in = (ref1 = entry.dim_in) != null ? ref1.split("x").pop() : void 0;
-      suffix = " orig";
-      if (this.net.name.indexOf("base2") > -1) {
-        suffix = " b2";
-      }
-      if (this.net.name.indexOf("3x3") > -1) {
-        suffix = " 3x3/16";
-      }
-      line = {};
-      line["layer"] = entry.name;
-      line["capacity" + suffix] = ((ref2 = entry.mem_raw) != null ? ref2.activation : void 0) > 0 ? entry.mem_raw.activation : "";
-      line["macc " + suffix] = ((ref3 = entry.ops_raw) != null ? ref3.macc : void 0) > 0 ? entry.ops_raw.macc : "";
-      line["param " + suffix] = ((ref4 = entry.mem_raw) != null ? ref4.param : void 0) > 0 ? entry.mem_raw.param : "";
-      line["ch_out " + suffix] = entry.ch_out;
-      line["width " + suffix] = dim_in;
-      areatbl.push(line);
+      $(Tableify(areatbl)).appendTo(this.table);
     }
-    $(Tableify(areatbl)).appendTo(this.table);
     return null;
   };
 

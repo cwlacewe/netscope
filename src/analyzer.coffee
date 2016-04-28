@@ -1,5 +1,3 @@
-do_variants_analysis = false
-
 module.exports =
 class Analyzer
     constructor: ->
