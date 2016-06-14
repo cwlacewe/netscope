@@ -2,7 +2,7 @@ AppController   = require './app.coffee'
 CaffeNetwork    = require './caffe/caffe.coffee'
 Loader          = require './loader.coffee'
 
-window.do_variants_analysis = false
+window.do_variants_analysis = true
 
 showDocumentation = ->
     window.location.href = 'quickstart.html'
