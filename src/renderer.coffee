@@ -194,9 +194,7 @@ class Renderer
                 # extract input dimension:
                 dim_in = entry.dim_in?.split("x").pop()
                 # add entry
-                suffix = " orig"
-                if @net.name.indexOf("base2") > -1 then suffix = " b2"
-                if @net.name.indexOf("3x3") > -1 then suffix = " 3x3/16"
+                suffix = " " + @net.name
                 line = {}
                 line["layer"] = entry.name;
                 line["capacity"+suffix] = if entry.mem_raw?.activation > 0 then entry.mem_raw.activation else ""

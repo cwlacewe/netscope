@@ -2864,13 +2864,7 @@ module.exports = Renderer = (function() {
           continue;
         }
         dim_in = (ref1 = entry.dim_in) != null ? ref1.split("x").pop() : void 0;
-        suffix = " orig";
-        if (this.net.name.indexOf("base2") > -1) {
-          suffix = " b2";
-        }
-        if (this.net.name.indexOf("3x3") > -1) {
-          suffix = " 3x3/16";
-        }
+        suffix = " " + this.net.name;
         line = {};
         line["layer"] = entry.name;
         line["capacity" + suffix] = ((ref2 = entry.mem_raw) != null ? ref2.activation : void 0) > 0 ? entry.mem_raw.activation : "";

@@ -37,7 +37,7 @@ layer {
   name: "fire2/squeeze3x3"
   type: "Convolution"
   bottom: "conv1"
-  top: "fire2/squeeze1x1"
+  top: "fire2/squeeze3x3"
   convolution_param {
     num_output: 16
     kernel_size: 3
@@ -49,15 +49,15 @@ layer {
   }
 }
 layer {
-  name: "fire2/relu_squeeze1x1"
+  name: "fire2/relu_squeeze3x3"
   type: "ReLU"
-  bottom: "fire2/squeeze1x1"
-  top: "fire2/squeeze1x1"
+  bottom: "fire2/squeeze3x3"
+  top: "fire2/squeeze3x3"
 }
 layer {
   name: "fire2/expand1x1"
   type: "Convolution"
-  bottom: "fire2/squeeze1x1"
+  bottom: "fire2/squeeze3x3"
   top: "fire2/expand1x1"
   convolution_param {
     num_output: 64
@@ -76,7 +76,7 @@ layer {
 layer {
   name: "fire2/expand3x3"
   type: "Convolution"
-  bottom: "fire2/squeeze1x1"
+  bottom: "fire2/squeeze3x3"
   top: "fire2/expand3x3"
   convolution_param {
     num_output: 64
@@ -169,7 +169,7 @@ layer {
   name: "fire4/squeeze3x3"
   type: "Convolution"
   bottom: "fire3/concat"
-  top: "fire4/squeeze1x1"
+  top: "fire4/squeeze3x3"
   convolution_param {
     num_output: 32
     kernel_size: 3
@@ -181,15 +181,15 @@ layer {
   }
 }
 layer {
-  name: "fire4/relu_squeeze1x1"
+  name: "fire4/relu_squeeze3x3"
   type: "ReLU"
-  bottom: "fire4/squeeze1x1"
-  top: "fire4/squeeze1x1"
+  bottom: "fire4/squeeze3x3"
+  top: "fire4/squeeze3x3"
 }
 layer {
   name: "fire4/expand1x1"
   type: "Convolution"
-  bottom: "fire4/squeeze1x1"
+  bottom: "fire4/squeeze3x3"
   top: "fire4/expand1x1"
   convolution_param {
     num_output: 128
@@ -208,7 +208,7 @@ layer {
 layer {
   name: "fire4/expand3x3"
   type: "Convolution"
-  bottom: "fire4/squeeze1x1"
+  bottom: "fire4/squeeze3x3"
   top: "fire4/expand3x3"
   convolution_param {
     num_output: 128
@@ -301,7 +301,7 @@ layer {
   name: "fire6/squeeze3x3"
   type: "Convolution"
   bottom: "fire5/concat"
-  top: "fire6/squeeze1x1"
+  top: "fire6/squeeze3x3"
   convolution_param {
     num_output: 64
     kernel_size: 3
@@ -313,15 +313,15 @@ layer {
   }
 }
 layer {
-  name: "fire6/relu_squeeze1x1"
+  name: "fire6/relu_squeeze3x3"
   type: "ReLU"
-  bottom: "fire6/squeeze1x1"
-  top: "fire6/squeeze1x1"
+  bottom: "fire6/squeeze3x3"
+  top: "fire6/squeeze3x3"
 }
 layer {
   name: "fire6/expand1x1"
   type: "Convolution"
-  bottom: "fire6/squeeze1x1"
+  bottom: "fire6/squeeze3x3"
   top: "fire6/expand1x1"
   convolution_param {
     num_output: 256
@@ -340,7 +340,7 @@ layer {
 layer {
   name: "fire6/expand3x3"
   type: "Convolution"
-  bottom: "fire6/squeeze1x1"
+  bottom: "fire6/squeeze3x3"
   top: "fire6/expand3x3"
   convolution_param {
     num_output: 256
