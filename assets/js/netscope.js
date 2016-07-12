@@ -2382,7 +2382,7 @@ CaffeNetwork = require('./caffe/caffe.coffee');
 
 Loader = require('./loader.coffee');
 
-window.do_variants_analysis = true;
+window.do_variants_analysis = false;
 
 showDocumentation = function() {
   return window.location.href = 'quickstart.html';
