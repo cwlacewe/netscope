@@ -213,7 +213,8 @@ class Analyzer
                     # --none
                     #memory
                     d.mem.activation = d.wOut*d.hOut*d.chOut
-     
+                    
+                #relu/dropout use some memory, do some comparisons
                 when "relu", "dropout"
                     #dimensions
                     d.wIn = parent.wOut
@@ -313,7 +314,23 @@ class Analyzer
                     # --none
                     #memory
                     d.mem.activation = d.wOut*d.hOut*d.chOut
-                                    
+                          
+                #scale layer use activation memory and does multiplies
+                when "scale"
+                    #dimensions
+                    ## assume pass-through
+                    d.wIn = parent?.wOut
+                    d.hIn = parent?.hOut
+                    d.chIn = parent?.chOut
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    d.chOut = d.chIn
+                    #computation: scale = multiplication
+                    d.comp.macc = d.wOut*d.hOut*d.chOut
+                    #memory
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
+                                   
+                #implicit layers use activation memory, but no computation 
                 when "implicit"
                     #dimensions
                     ## assume pass-through

@@ -279,6 +279,16 @@ module.exports = Analyzer = (function() {
           d.chOut = d.chIn;
           d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
+        case "scale":
+          d.wIn = parent != null ? parent.wOut : void 0;
+          d.hIn = parent != null ? parent.hOut : void 0;
+          d.chIn = parent != null ? parent.chOut : void 0;
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn;
+          d.comp.macc = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          break;
         case "implicit":
           d.wIn = parent != null ? parent.wOut : void 0;
           d.hIn = parent != null ? parent.hOut : void 0;
@@ -383,7 +393,7 @@ module.exports = AppController = (function() {
     var editlink, renderer;
     this.$spinner.hide();
     $('#net-title').html(net.name.replace(/_/g, ' '));
-    $('title').text(net.name.replace(/_/g, ' ') + ' [Netscope-Analyzer]');
+    $('title').text(net.name.replace(/_/g, ' ') + ' — Netscope CNN Analyzer');
     editlink = $("<a>(edit)</a>").addClass("editlink");
     editlink.appendTo($('#net-title'));
     editlink.click((function(_this) {

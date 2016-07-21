@@ -25,7 +25,7 @@ class AppController
     completeLoading: (net, loader) ->
         @$spinner.hide()
         $('#net-title').html(net.name.replace(/_/g, ' '))
-        $('title').text(net.name.replace(/_/g, ' ')+' [Netscope-Analyzer]')
+        $('title').text(net.name.replace(/_/g, ' ')+' — Netscope CNN Analyzer')
         editlink = $("<a>(edit)</a>").addClass("editlink")
         editlink.appendTo $('#net-title')
         editlink.click( => @showEditor(loader))
