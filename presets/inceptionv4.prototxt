@@ -8317,6 +8317,5 @@ layer {
   name: "loss"
   type: "SoftmaxWithLoss"
   bottom: "classifier"
-  bottom: "label"
   top: "loss"
 }
