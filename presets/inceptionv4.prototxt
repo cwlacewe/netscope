@@ -1,22 +1,16 @@
 #downloaded from http://github.com/soeaver/caffe-model
+name: "Inception v4"
 layer {
   name: "data"
   type: "Data"
   top: "data"
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    mirror: true
-    crop_size: 299
-    mean_value: 104
-    mean_value: 117
-    mean_value: 123
-  }
-  data_param {
-    source: "examples/imagenet/ilsvrc12_train_lmdb"
-    batch_size: 64
-    backend: LMDB
+  input_param {
+      shape: {
+          dim: 1
+          dim: 3
+          dim: 299
+          dim: 299
+      }
   }
 }
 layer {
