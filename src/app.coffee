@@ -39,7 +39,7 @@ class AppController
         @renderer = new Renderer net, @svg, @table
 
         if not window.do_variants_analysis
-            extendlink = $('<a>extended analysis (experimental)</a>')
+            extendlink = $('<a>Excel-compatible Analysis Results (experimental)</a>')
             extendlink.click( => 
                 window.do_variants_analysis = true
                 @renderer.renderTable()
