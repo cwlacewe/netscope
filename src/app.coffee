@@ -24,16 +24,28 @@ class AppController
 
     completeLoading: (net, loader) ->
         @$spinner.hide()
+
         $('#net-title').html(net.name.replace(/_/g, ' '))
+
         $('title').text(net.name.replace(/_/g, ' ')+' — Netscope CNN Analyzer')
         editlink = $("<a>(edit)</a>").addClass("editlink")
         editlink.appendTo $('#net-title')
         editlink.click( => @showEditor(loader))
+
         @$netBox.show()
         @$tableBox.show()
         $(@svg).empty()
         $('.qtip').remove()
-        renderer = new Renderer net, @svg, @table
+        @renderer = new Renderer net, @svg, @table
+
+        if not window.do_variants_analysis
+            extendlink = $('<a>extended analysis (experimental)</a>')
+            extendlink.click( => 
+                window.do_variants_analysis = true
+                @renderer.renderTable()
+            )
+            extendlink.appendTo @table 
+
         @inProgress = false
 
     makeLoader: (loaderFunc, loader) ->

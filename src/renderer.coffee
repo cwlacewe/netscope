@@ -56,7 +56,7 @@ class Renderer
             # summarize Values in Variant Implementations
             if (do_variants_analysis)
                 if (n.analysis.variants.length > 0)
-                    if worstcasepervariant == null # initial copy
+                    if not worstcasepervariant # initial copy
                         worstcasepervariant = _.cloneDeep(n.analysis.variants)
                     variantcopy = _.extend([],n.analysis.variants)
                     for variant,idx in variantcopy
@@ -78,7 +78,7 @@ class Renderer
             if (do_variants_analysis) then entry.implementations = n.analysis.variants;
             tbl.push(entry)
         
-        if (do_variants_analysis)
+        if (do_variants_analysis and worstcasepervariant)
             # worst case variant summary
             for variant in worstcasepervariant
                 variant[key] = @toSuffixForm(val) for key,val of variant when val > 0

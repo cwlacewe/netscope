@@ -390,7 +390,7 @@ module.exports = AppController = (function() {
   };
 
   AppController.prototype.completeLoading = function(net, loader) {
-    var editlink, renderer;
+    var editlink, extendlink;
     this.$spinner.hide();
     $('#net-title').html(net.name.replace(/_/g, ' '));
     $('title').text(net.name.replace(/_/g, ' ') + ' — Netscope CNN Analyzer');
@@ -405,7 +405,17 @@ module.exports = AppController = (function() {
     this.$tableBox.show();
     $(this.svg).empty();
     $('.qtip').remove();
-    renderer = new Renderer(net, this.svg, this.table);
+    this.renderer = new Renderer(net, this.svg, this.table);
+    if (!window.do_variants_analysis) {
+      extendlink = $('<a>extended analysis (experimental)</a>');
+      extendlink.click((function(_this) {
+        return function() {
+          window.do_variants_analysis = true;
+          return _this.renderer.renderTable();
+        };
+      })(this));
+      extendlink.appendTo(this.table);
+    }
     return this.inProgress = false;
   };
 
@@ -2645,7 +2655,7 @@ module.exports = Renderer = (function() {
       n = ref[j];
       if (do_variants_analysis) {
         if (n.analysis.variants.length > 0) {
-          if (worstcasepervariant === null) {
+          if (!worstcasepervariant) {
             worstcasepervariant = _.cloneDeep(n.analysis.variants);
           }
           variantcopy = _.extend([], n.analysis.variants);
@@ -2683,7 +2693,7 @@ module.exports = Renderer = (function() {
       }
       tbl.push(entry);
     }
-    if (do_variants_analysis) {
+    if (do_variants_analysis && worstcasepervariant) {
       for (l = 0, len2 = worstcasepervariant.length; l < len2; l++) {
         variant = worstcasepervariant[l];
         for (key in variant) {

@@ -65,6 +65,7 @@ class Analyzer
                     #memory
                     d.mem.param = (kernel_w*kernel_h)*d.chIn*d.chOut
                     d.mem.activation = d.wOut*d.hOut*d.chOut
+                    
                     # CACHE AND BANDWIDTH for Implementation Variants
                     if (do_variants_analysis)
                         d.variants.push({
