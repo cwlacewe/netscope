@@ -407,6 +407,7 @@ module.exports = AppController = (function() {
     $('.qtip').remove();
     this.renderer = new Renderer(net, this.svg, this.table);
     if (!window.do_variants_analysis) {
+      $("<br>").appendTo(this.table);
       extendlink = $('<a>Excel-compatible Analysis Results (experimental)</a>');
       extendlink.click((function(_this) {
         return function() {
