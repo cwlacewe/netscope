@@ -1,4 +1,6 @@
-# Netscope-Analyzer
+# Netscope CNN Analyzer
+
+available here: http://dgschwend.github.io/netscope 
 
 This is a CNN Analyzer tool, based on Netscope by [ethereon](https://github.com/ethereon).
 Netscope is a web-based tool for visualizing neural network topologies. It currently supports UC Berkeley's [Caffe framework](https://github.com/bvlc/caffe).
