@@ -290,20 +290,28 @@ module.exports = Analyzer = (function() {
           d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         case "implicit":
+          d.wIn = +((parent != null ? parent.wOut : void 0) != null);
+          d.hIn = +((parent != null ? parent.hOut : void 0) != null);
+          d.chIn = +((parent != null ? parent.chOut : void 0) != null);
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          break;
+        case "accuracy":
           d.wIn = parent != null ? parent.wOut : void 0;
           d.hIn = parent != null ? parent.hOut : void 0;
           d.chIn = parent != null ? parent.chOut : void 0;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
           break;
         default:
           onerror('Unknown Layer: ' + layertype);
           console.log(n);
           debugger;
       }
-      trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"];
+      trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat", "accuracy"];
       if ($.inArray(layertype, trivial_layers) === -1) {
         analysis = {
           "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,

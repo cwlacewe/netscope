@@ -335,6 +335,21 @@ class Analyzer
                 when "implicit"
                     #dimensions
                     ## assume pass-through
+                    d.wIn = +parent?.wOut?
+                    d.hIn = +parent?.hOut?
+                    d.chIn = +parent?.chOut?
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    d.chOut = d.chIn
+                    #computation
+                    # --none
+                    #memory
+                    d.mem.activation = d.wOut*d.hOut*d.chOut
+                    
+                # accuracy layers just pass through
+                when "accuracy"
+                    #dimensions
+                    ## assume pass-through
                     d.wIn = parent?.wOut
                     d.hIn = parent?.hOut
                     d.chIn = parent?.chOut
@@ -344,7 +359,7 @@ class Analyzer
                     #computation
                     # --none
                     #memory
-                    d.mem.activation = d.wOut*d.hOut*d.chOut
+                    # --none
                 
                 else # unknown layer;  print error message;
                     onerror('Unknown Layer: '+layertype)
@@ -352,7 +367,7 @@ class Analyzer
                     debugger;
 
             # add dimensions to node attributes so they show in graph tooltips
-            trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat"]
+            trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat", "accuracy"]
             if $.inArray(layertype, trivial_layers) == -1
                 analysis = {
                     in: d.chIn+'ch ⋅ '+d.wIn+'×'+d.hIn,
