@@ -11,6 +11,7 @@ This fork adds analysis capabilities, enabling the computation of network comple
 - Netscope [Quick Start Guide](http://dgschwend.github.io/netscope/quickstart.html)
 
 ### Demo
+- :new: [Visualization of ZynqNet CNN](http://dgschwend.github.io/netscope/#/preset/zynqnet)
 - [Visualization of the Deep Convolutional Neural Network "SqueezeNet"](http://dgschwend.github.io/netscope/#/preset/squeezenet)
 
 ### License
