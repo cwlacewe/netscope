@@ -363,10 +363,12 @@ class Analyzer
 
                 # reshape layers just permute dimensions, assume on-the-fly operation
                 when "reshape"
+                    #set default (pass-through)
+                    d.wIn = parent?.wOut
+                    d.hIn = parent?.hOut
+                    d.chIn = parent?.chOut
                     #get reshape parameters
                     newshape = n.attribs.reshape_param.shape.dim.slice(0) # copy array
-                    #debugger
-                    console.log(newshape);
                     # 0 as dimension = inherit from input
                     if (not newshape[0]) or (newshape[0] == 0) then newshape[0] = d.batchIn
                     if (not newshape[1]) or (newshape[1] == 0) then newshape[1] = d.chIn

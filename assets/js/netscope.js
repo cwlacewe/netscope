@@ -16278,8 +16278,10 @@ module.exports = Analyzer = (function() {
           d.chOut = d.chIn;
           break;
         case "reshape":
+          d.wIn = parent != null ? parent.wOut : void 0;
+          d.hIn = parent != null ? parent.hOut : void 0;
+          d.chIn = parent != null ? parent.chOut : void 0;
           newshape = n.attribs.reshape_param.shape.dim.slice(0);
-          console.log(newshape);
           if ((!newshape[0]) || (newshape[0] === 0)) {
             newshape[0] = d.batchIn;
           }
