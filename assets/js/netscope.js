@@ -16278,6 +16278,7 @@ module.exports = Analyzer = (function() {
           d.chOut = d.chIn;
           break;
         case "reshape":
+          d.batchIn = parent != null ? parent.batchOut : void 0;
           d.wIn = parent != null ? parent.wOut : void 0;
           d.hIn = parent != null ? parent.hOut : void 0;
           d.chIn = parent != null ? parent.chOut : void 0;
