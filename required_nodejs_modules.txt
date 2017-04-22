@@ -1,0 +1,6 @@
+This project requires node.js and the following modules to be installed for successful compilation
+install with npm install <package>[@<version>]
+
+tablesorter@2.26
+coffeeify
+watchify

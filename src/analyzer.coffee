@@ -360,6 +360,32 @@ class Analyzer
                     # --none
                     #memory
                     # --none
+
+                # reshape layers just permute dimensions, assume on-the-fly operation
+                when "reshape"
+                    #get reshape parameters
+                    newshape = n.attribs.reshape_param.shape.dim.slice(0) # copy array
+                    #debugger
+                    console.log(newshape);
+                    # 0 as dimension = inherit from input
+                    if (not newshape[0]) or (newshape[0] == 0) then newshape[0] = d.batchIn
+                    if (not newshape[1]) or (newshape[1] == 0) then newshape[1] = d.chIn
+                    if (not newshape[2]) or (newshape[2] == 0) then newshape[2] = d.hIn
+                    if (not newshape[3]) or (newshape[3] == 0) then newshape[3] = d.wIn
+                    # -1 as dimension = infer from other dimensions, allowed for at most 1 dimension
+                    prod_in_dims = d.batchIn * d.wIn * d.hIn * d.chIn
+                    prod_out_dims = newshape[0] * newshape[1] * newshape[2] * newshape[3] * (-1)# -1 compensates "-1" in newshape
+                    infered_dim = prod_in_dims / prod_out_dims
+                    if newshape[0] == -1 then newshape[0] = infered_dim
+                    if newshape[1] == -1 then newshape[1] = infered_dim
+                    if newshape[2] == -1 then newshape[2] = infered_dim
+                    if newshape[3] == -1 then newshape[3] = infered_dim
+                    # assign output dimensions
+                    d.batchOut = newshape[0]
+                    d.chOut    = newshape[1]
+                    d.hOut     = newshape[2]
+                    d.wOut     = newshape[3]
+                    # no computation, no memory required.
                 
                 else # unknown layer;  print error message;
                     onerror('Unknown Layer: '+layertype)
