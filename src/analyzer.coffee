@@ -184,7 +184,7 @@ module.exports =
                     #dimensions
                     #default mode: ACROSS_CHANNELS
                     mode   = n.attribs.lrn_param?.norm_region ? 'ACROSS_CHANNELS'
-                    size   = n.attribs.lrn_param?.local_size
+                    size   = n.attribs.lrn_param?.local_size ? 1
                     d.wOut = d.wIn
                     d.hOut = d.hIn
                     d.chOut = d.chIn
