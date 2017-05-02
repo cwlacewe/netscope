@@ -177,7 +177,7 @@ module.exports =
                     d.mem.param = d.chIn*2
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
-                when "lrn"
+                when "lrn", "normalize"
                     #dimensions
                     #default mode: ACROSS_CHANNELS
                     mode   = n.attribs.lrn_param.norm_region ? 'ACROSS_CHANNELS'

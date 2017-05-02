@@ -16125,6 +16125,7 @@ module.exports = Analyzer = (function() {
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "lrn":
+        case "normalize":
           mode = (ref18 = n.attribs.lrn_param.norm_region) != null ? ref18 : 'ACROSS_CHANNELS';
           size = n.attribs.lrn_param.local_size;
           d.wOut = d.wIn;
