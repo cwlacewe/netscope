@@ -140,19 +140,22 @@ module.exports =
                 when "pooling"
                     #dimensions
                     params = n.attribs.pooling_param
-                    kernel = params.kernel_size
-                    stride = params.stride ? 1
-                    pad    = params.pad ? 0
+                    kernel_w = params.kernel_w ? params.kernel_size
+                    kernel_h = params.kernel_h ? params.kernel_size
+                    stride_w = params.stride_w ? (params.stride ? 1)
+                    stride_h = params.stride_h ? (params.stride ? 1)
+                    pad_w    = params.pad_w ? (params.pad ? 0)
+                    pad_h    = params.pad_h ? (params.pad ? 0)
                     isglobal = params.global_pooling ? 0
                     pooltype = (params.pool ? 'MAX').toUpperCase()
                     d.chOut = d.chIn
                     # according to http://caffe.berkeleyvision.org/tutorial/layers.html and https://github.com/BVLC/caffe/issues/3656
-                    d.wOut = Math.ceil((d.wIn + 2*pad - kernel) / stride) + 1
-                    d.hOut = Math.ceil((d.hIn + 2*pad - kernel) / stride) + 1
+                    d.wOut = Math.ceil((d.wIn + 2*pad_w - kernel_w) / stride_w) + 1
+                    d.hOut = Math.ceil((d.hIn + 2*pad_h - kernel_h) / stride_h) + 1
                     if isglobal
                         d.wOut = d.hOut = 1
                     #computation
-                    num_ops = if isglobal then ((d.wIn*d.hIn)*d.chIn*d.batchOut) else ((d.wOut*d.hOut)*kernel*kernel*d.chOut*d.batchOut)
+                    num_ops = if isglobal then ((d.wIn*d.hIn)*d.chIn*d.batchOut) else ((d.wOut*d.hOut)*kernel_h*kernel_w*d.chOut*d.batchOut)
                     if pooltype == 'MAX'
                         d.comp.comp = num_ops
                     else if pooltype == 'AVE'
@@ -163,7 +166,7 @@ module.exports =
                     #memory
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
-                when "batchnorm"
+                when "batchnorm", "bn"
                     #dimensions
                     d.wOut  = d.wIn
                     d.hOut  = d.hIn
@@ -180,8 +183,8 @@ module.exports =
                 when "lrn", "normalize"
                     #dimensions
                     #default mode: ACROSS_CHANNELS
-                    mode   = n.attribs.lrn_param.norm_region ? 'ACROSS_CHANNELS'
-                    size   = n.attribs.lrn_param.local_size
+                    mode   = n.attribs.lrn_param?.norm_region ? 'ACROSS_CHANNELS'
+                    size   = n.attribs.lrn_param?.local_size
                     d.wOut = d.wIn
                     d.hOut = d.hIn
                     d.chOut = d.chIn
@@ -252,9 +255,9 @@ module.exports =
                     d.chOut = d.chIn
                     # check input dimensions
                     failed = false
-                    for parent in n.parents
-                        failed = failed or d.wIn != parent.wOut or d.hIn != parent.hOut
-                    onerror 'ELTWISE: input dimensions dont agree!' if failed
+                    for p in n.parents
+                        failed = failed or (d.wIn != p.analysis.wOut) or (d.hIn != p.analysis.hOut)
+                    onerror 'ELTWISE: input dimensions dont agree in '+n.name if failed
                     #computation
                     op = n.eltwise_param?.operation?.toUpperCase() ? 'SUM'
                     if op == 'SUM'
