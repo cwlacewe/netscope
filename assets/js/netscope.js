@@ -15976,13 +15976,13 @@ module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
-    var analysis, d, failed, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, layertype, len, len1, len2, mem, mode, n, newshape, num_inputs, num_ops, numout, op, ops, p, pad, pad_h, pad_w, params, parent, parent2, pooltype, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref4, ref5, ref6, ref7, ref8, ref9, shape, size, stride, stride_h, stride_w, trivial_layers, val;
+    var aspect_ratios, d, dim_in, failed, feature_map, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, mem, mode, module, n, newshape, num_inputs, num_ops, num_priors, num_region_proposals, numout, op, ops, p, pad, pad_h, pad_w, params, parent, parent2, permutation, pooltype, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref4, ref5, ref6, ref7, ref8, ref9, roi_proposals, settings, shape, size, stride, stride_h, stride_w, summary, trivial_layers, val;
     ref = net.sortTopologically();
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
+      layertype = n.type.toLowerCase();
       d = n.analysis;
-      d.wIn = d.hIn = d.wOut = d.hOut = 0;
-      d.chIn = d.chOut = 0;
+      d.wIn = d.hIn = d.wOut = d.hOut = d.chIn = d.chOut = 0;
       d.comp = {
         macc: 0,
         comp: 0,
@@ -15995,18 +15995,23 @@ module.exports = Analyzer = (function() {
         param: 0
       };
       d.variants = [];
-      layertype = n.type.toLowerCase();
       parent = (ref1 = n.parents[0]) != null ? ref1.analysis : void 0;
+      d.batchOut = d.batchIn = parent != null ? parent.batchOut : void 0;
+      d.wIn = parent != null ? parent.wOut : void 0;
+      d.hIn = parent != null ? parent.hOut : void 0;
+      d.chIn = parent != null ? parent.chOut : void 0;
       switch (layertype) {
         case "data":
           if (((ref2 = n.attribs.input_param) != null ? ref2.shape : void 0) != null) {
             shape = n.attribs.input_param.shape;
+            d.batchIn = shape.dim[0];
             d.chIn = shape.dim[1];
             d.hIn = shape.dim[2];
             d.wIn = shape.dim[3];
           } else if (((ref3 = n.attribs.transform_param) != null ? ref3.crop_size : void 0) != null) {
             d.wIn = d.hIn = n.attribs.transform_param.crop_size;
             d.chIn = 3;
+            d.batchOut = 1;
           } else {
             onerror('Unknown Input Dimensions');
             debugger;
@@ -16014,7 +16019,8 @@ module.exports = Analyzer = (function() {
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.batchOut = d.batchIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "convolution":
           params = n.attribs.convolution_param;
@@ -16025,15 +16031,12 @@ module.exports = Analyzer = (function() {
           pad_w = (ref10 = params.pad_w) != null ? ref10 : (ref11 = params.pad) != null ? ref11 : 0;
           pad_h = (ref12 = params.pad_h) != null ? ref12 : (ref13 = params.pad) != null ? ref13 : 0;
           numout = params.num_output;
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
           d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
           d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
-          d.chIn = parent.chOut;
           d.chOut = numout;
-          d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut;
+          d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut * d.batchOut;
           d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = (d.wOut * d.hOut) * d.chOut * d.batchOut;
           if (do_variants_analysis) {
             d.variants.push({
               name: "complete outputs, input cache",
@@ -16082,15 +16085,12 @@ module.exports = Analyzer = (function() {
         case "innerproduct":
         case "inner_product":
           numout = n.attribs.inner_product_param.num_output;
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
-          d.chIn = parent.chOut;
           d.wOut = 1;
           d.hOut = 1;
           d.chOut = numout;
-          d.comp.macc = (d.wIn * d.hIn) * d.chIn * d.chOut;
+          d.comp.macc = (d.wIn * d.hIn) * d.chIn * d.chOut * d.batchOut;
           d.mem.param = d.wIn * d.hIn * d.chIn * d.chOut;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "pooling":
           params = n.attribs.pooling_param;
@@ -16099,16 +16099,13 @@ module.exports = Analyzer = (function() {
           pad = (ref15 = params.pad) != null ? ref15 : 0;
           isglobal = (ref16 = params.global_pooling) != null ? ref16 : 0;
           pooltype = ((ref17 = params.pool) != null ? ref17 : 'MAX').toUpperCase();
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
-          d.chIn = parent.chOut;
           d.chOut = d.chIn;
           d.wOut = Math.ceil((d.wIn + 2 * pad - kernel) / stride) + 1;
           d.hOut = Math.ceil((d.hIn + 2 * pad - kernel) / stride) + 1;
           if (isglobal) {
             d.wOut = d.hOut = 1;
           }
-          num_ops = isglobal ? (d.wIn * d.hIn) * d.chIn : (d.wOut * d.hOut) * kernel * kernel * d.chOut;
+          num_ops = isglobal ? (d.wIn * d.hIn) * d.chIn * d.batchOut : (d.wOut * d.hOut) * kernel * kernel * d.chOut * d.batchOut;
           if (pooltype === 'MAX') {
             d.comp.comp = num_ops;
           } else if (pooltype === 'AVE') {
@@ -16116,38 +16113,32 @@ module.exports = Analyzer = (function() {
           } else {
             onerror("Unknown pooling type " + pooltype);
           }
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "batchnorm":
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
-          d.chOut = d.chIn = parent.chOut;
-          d.comp.add = d.wIn * d.hIn * d.chIn;
-          d.comp.div = d.wIn * d.hIn * d.chIn;
+          d.chOut = d.chIn;
+          d.comp.add = d.wIn * d.hIn * d.chIn * d.batchOut;
+          d.comp.div = d.wIn * d.hIn * d.chIn * d.batchOut;
           d.mem.param = d.chIn * 2;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "lrn":
           mode = (ref18 = n.attribs.lrn_param.norm_region) != null ? ref18 : 'ACROSS_CHANNELS';
           size = n.attribs.lrn_param.local_size;
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
-          d.chOut = d.chIn = parent.chOut;
-          num_inputs = d.wIn * d.hIn * d.chIn;
+          d.chOut = d.chIn;
+          num_inputs = d.wIn * d.hIn * d.chIn * d.batchOut;
           d.comp.macc = num_inputs * size;
           d.comp.add = num_inputs;
           d.comp.exp = num_inputs;
           d.comp.div = num_inputs * 2;
           d.mem.param = 2;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "concat":
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           ref19 = n.parents;
@@ -16164,7 +16155,7 @@ module.exports = Analyzer = (function() {
           if (failed) {
             window.onerror('CONCAT: input dimensions dont agree!');
           }
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "relu":
         case "dropout":
@@ -16173,116 +16164,122 @@ module.exports = Analyzer = (function() {
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn = parent.chOut;
-          d.comp.comp = d.wIn * d.hIn * d.chIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.comp.comp = d.wIn * d.hIn * d.chIn * d.batchOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "softmax":
         case "softmaxwithloss":
         case "softmax_loss":
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
-          d.wOut = d.wIn;
-          d.hOut = d.hIn;
-          d.chOut = d.chIn = parent.chOut;
-          d.comp.exp = d.wIn * d.hIn * d.chIn;
-          d.comp.add = d.wIn * d.hIn * d.chIn;
-          d.comp.div = d.wIn * d.hIn * d.chIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
-          break;
-        case "flatten":
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
-          d.chIn = parent.chOut;
-          d.wOut = d.hOut = 1;
-          d.chOut = d.chIn * d.wIn * d.hIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
-          break;
-        case "eltwise":
-          d.wIn = parent.wOut;
-          d.hIn = parent.hOut;
-          d.chIn = parent.chOut;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
-          parent2 = n.parents[1].analysis;
-          failed = parent.wOut !== parent2.wOut || parent.hOut !== parent2.hOut;
+          d.comp.exp = d.wIn * d.hIn * d.chIn * d.batchOut;
+          d.comp.add = d.wIn * d.hIn * d.chIn * d.batchOut;
+          d.comp.div = d.wIn * d.hIn * d.chIn * d.batchOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+          break;
+        case "flatten":
+          d.wOut = d.hOut = 1;
+          d.chOut = d.chIn * d.wIn * d.hIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+          break;
+        case "eltwise":
+          d.wOut = d.wIn;
+          d.hOut = d.hIn;
+          d.chOut = d.chIn;
+          failed = false;
+          ref21 = n.parents;
+          for (l = 0, len3 = ref21.length; l < len3; l++) {
+            parent = ref21[l];
+            failed = failed || d.wIn !== parent.wOut || d.hIn !== parent.hOut;
+          }
           if (failed) {
             onerror('ELTWISE: input dimensions dont agree!');
           }
-          op = (ref21 = (ref22 = n.eltwise_param) != null ? (ref23 = ref22.operation) != null ? ref23.toUpperCase() : void 0 : void 0) != null ? ref21 : 'SUM';
+          op = (ref22 = (ref23 = n.eltwise_param) != null ? (ref24 = ref23.operation) != null ? ref24.toUpperCase() : void 0 : void 0) != null ? ref22 : 'SUM';
           if (op === 'SUM') {
-            d.comp.add = d.wIn * d.hIn * d.chIn;
+            d.comp.add = d.wIn * d.hIn * d.chIn * d.batchOut;
           } else if (op === 'MAX') {
-            d.comp.comp = d.wIn * d.hIn * d.chIn;
+            d.comp.comp = d.wIn * d.hIn * d.chIn * d.batchOut;
           } else if (op === 'PROD') {
-            d.comp.macc = d.wIn * d.hIn * d.chIn;
+            d.comp.macc = d.wIn * d.hIn * d.chIn * d.batchOut;
           } else {
             onerror('ELTWISE: unknown operation ' + op);
           }
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "deconvolution":
           params = n.attribs.convolution_param;
-          kernel_w = (ref24 = params.kernel_w) != null ? ref24 : params.kernel_size;
-          kernel_h = (ref25 = params.kernel_h) != null ? ref25 : params.kernel_size;
-          stride_w = (ref26 = params.stride_w) != null ? ref26 : (ref27 = params.stride) != null ? ref27 : 1;
-          stride_h = (ref28 = params.stride_h) != null ? ref28 : (ref29 = params.stride) != null ? ref29 : 1;
-          pad_w = (ref30 = params.pad_w) != null ? ref30 : (ref31 = params.pad) != null ? ref31 : 0;
-          pad_h = (ref32 = params.pad_h) != null ? ref32 : (ref33 = params.pad) != null ? ref33 : 0;
+          kernel_w = (ref25 = params.kernel_w) != null ? ref25 : params.kernel_size;
+          kernel_h = (ref26 = params.kernel_h) != null ? ref26 : params.kernel_size;
+          stride_w = (ref27 = params.stride_w) != null ? ref27 : (ref28 = params.stride) != null ? ref28 : 1;
+          stride_h = (ref29 = params.stride_h) != null ? ref29 : (ref30 = params.stride) != null ? ref30 : 1;
+          pad_w = (ref31 = params.pad_w) != null ? ref31 : (ref32 = params.pad) != null ? ref32 : 0;
+          pad_h = (ref33 = params.pad_h) != null ? ref33 : (ref34 = params.pad) != null ? ref34 : 0;
           numout = params.num_output;
-          d.wIn = parent != null ? parent.wOut : void 0;
-          d.hIn = parent != null ? parent.hOut : void 0;
-          d.chIn = parent != null ? parent.chOut : void 0;
           d.wOut = stride_w * (d.wIn - 1) + kernel_w - 2 * pad_w;
           d.hOut = stride_h * (d.hIn - 1) + kernel_h - 2 * pad_h;
           d.chOut = numout;
-          d.comp.macc = d.chIn * d.chOut * d.wOut * d.hOut * (kernel_w / stride_w) * (kernel_h / stride_h);
+          d.comp.macc = d.chIn * d.chOut * d.wOut * d.hOut * (kernel_w / stride_w) * (kernel_h / stride_h) * d.batchOut;
           d.mem.param = kernel_w * kernel_h * d.chIn * d.chOut;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "crop":
           parent2 = n.parents[1].analysis;
-          d.wIn = parent != null ? parent.wOut : void 0;
-          d.hIn = parent != null ? parent.hOut : void 0;
-          d.chIn = parent != null ? parent.chOut : void 0;
           d.wOut = parent2.wOut;
           d.hOut = parent2.hOut;
           d.chOut = d.chIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "scale":
-          d.wIn = parent != null ? parent.wOut : void 0;
-          d.hIn = parent != null ? parent.hOut : void 0;
-          d.chIn = parent != null ? parent.chOut : void 0;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
-          d.comp.macc = d.wOut * d.hOut * d.chOut;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.comp.macc = d.wOut * d.hOut * d.chOut * d.batchOut;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "implicit":
-          d.wIn = +((parent != null ? parent.wOut : void 0) != null);
-          d.hIn = +((parent != null ? parent.hOut : void 0) != null);
-          d.chIn = +((parent != null ? parent.chOut : void 0) != null);
+          d.wIn = (ref35 = d.wIn) != null ? ref35 : "?";
+          d.hIn = (ref36 = d.hIn) != null ? ref36 : "?";
+          d.chIn = (ref37 = d.chIn) != null ? ref37 : "?";
+          d.batchIn = (ref38 = d.batchIn) != null ? ref38 : "?";
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
-          d.mem.activation = d.wOut * d.hOut * d.chOut;
+          d.batchOut = d.batchIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+          if (isNaN(d.mem.activation)) {
+            d.mem.activation = 0;
+          }
           break;
         case "accuracy":
-          d.wIn = parent != null ? parent.wOut : void 0;
-          d.hIn = parent != null ? parent.hOut : void 0;
-          d.chIn = parent != null ? parent.chOut : void 0;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
           break;
+        case "permute":
+          permutation = n.attribs.permute_param.order.slice(0);
+          dim_in = [d.batchIn, d.chIn, d.hIn, d.wIn];
+          d.batchOut = dim_in[permutation[0]];
+          d.chOut = dim_in[permutation[1]];
+          d.hOut = dim_in[permutation[2]];
+          d.wOut = dim_in[permutation[3]];
+          break;
+        case "priorbox":
+          settings = n.attribs.prior_box_param;
+          aspect_ratios = settings.aspect_ratio;
+          num_priors = settings.min_size * settings.aspect_ratio;
+          if (settings.flip) {
+            num_priors *= 2;
+          }
+          d.batchOut = d.batchIn;
+          d.chOut = 2;
+          d.hOut = 4;
+          d.wOut = num_priors;
+          break;
         case "reshape":
-          d.batchIn = parent != null ? parent.batchOut : void 0;
-          d.wIn = parent != null ? parent.wOut : void 0;
-          d.hIn = parent != null ? parent.hOut : void 0;
-          d.chIn = parent != null ? parent.chOut : void 0;
           newshape = n.attribs.reshape_param.shape.dim.slice(0);
+          console.log(newshape);
           if ((!newshape[0]) || (newshape[0] === 0)) {
             newshape[0] = d.batchIn;
           }
@@ -16315,23 +16312,57 @@ module.exports = Analyzer = (function() {
           d.hOut = newshape[2];
           d.wOut = newshape[3];
           break;
+        case "python":
+          module = n.attribs.python_param.module;
+          if (module === "rpn.proposal_layer") {
+            num_region_proposals = 300;
+            d.wOut = d.hOut = 1;
+            d.chOut = 5;
+            d.batchOut = num_region_proposals;
+            d.comp.div = (num_region_proposals * (num_region_proposals - 1)) / 2;
+            d.comp.macc = d.batchIn * (4 + 4) * 9 * (d.wIn * d.hIn) + 2 * d.comp.div;
+            d.comp.add = d.batchIn * (8 + 2) * 9 * (d.wIn * d.hIn) + 6 * d.comp.div;
+            d.comp.comp = d.batchIn * (4 + 2) * 9 * (d.wIn * d.hIn) + Math.pow(9 * (d.wIn * d.hIn), 2) + 7 * d.comp.div;
+            d.comp.exp = d.batchIn * 2 * 9 * (d.wIn * d.hIn);
+            d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+          } else {
+            onerror('Unknown Python Layer: ' + module);
+            console.log(n);
+            debugger;
+          }
+          break;
+        case "roipooling":
+          roi_proposals = n.parents[0].analysis.batchOut > 1 ? n.parents[0].analysis : n.parents[1].analysis;
+          feature_map = n.parents[0].analysis.batchOut > 1 ? n.parents[1].analysis : n.parents[0].analysis;
+          d.chIn = d.chOut = feature_map.chIn;
+          d.hIn = feature_map.hIn;
+          d.wIn = feature_map.wIn;
+          d.hOut = n.attribs.roi_pooling_param.pooled_h;
+          d.wOut = n.attribs.roi_pooling_param.pooled_w;
+          d.batchIn = d.batchOut = roi_proposals.batchOut;
+          d.comp.add = d.batchOut;
+          d.comp.div = d.batchOut;
+          d.comp.macc = d.batchOut;
+          d.comp.comp = d.batchOut * d.chIn * d.wIn * d.hIn;
+          d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+          break;
         default:
           onerror('Unknown Layer: ' + layertype);
           console.log(n);
           debugger;
       }
       trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat", "accuracy"];
-      if ($.inArray(layertype, trivial_layers) === -1) {
-        analysis = {
-          "in": d.chIn + 'ch ⋅ ' + d.wIn + '×' + d.hIn,
-          out: d.chOut + 'ch ⋅ ' + d.wOut + '×' + d.hOut
+      if (!($.inArray(layertype, trivial_layers) >= 0)) {
+        summary = {
+          "in": d.chIn + "ch ⋅ " + d.wIn + "×" + d.hIn + " (×" + d.batchIn + ")",
+          out: d.chOut + "ch ⋅ " + d.wOut + "×" + d.hOut + " (×" + d.batchOut + ")"
         };
         ops = ((function() {
-          var ref34, results;
-          ref34 = d.comp;
+          var ref39, results;
+          ref39 = d.comp;
           results = [];
-          for (key in ref34) {
-            val = ref34[key];
+          for (key in ref39) {
+            val = ref39[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -16339,14 +16370,14 @@ module.exports = Analyzer = (function() {
           return results;
         })()).join(', ');
         if (ops !== "") {
-          analysis.ops = ops;
+          summary.ops = ops;
         }
         mem = ((function() {
-          var ref34, results;
-          ref34 = d.mem;
+          var ref39, results;
+          ref39 = d.mem;
           results = [];
-          for (key in ref34) {
-            val = ref34[key];
+          for (key in ref39) {
+            val = ref39[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -16354,10 +16385,10 @@ module.exports = Analyzer = (function() {
           return results;
         })()).join(', ');
         if (mem !== "") {
-          analysis.mem = mem;
+          summary.mem = mem;
         }
         _.extend(n.attribs, {
-          analysis: analysis
+          analysis: summary
         });
       }
     }
