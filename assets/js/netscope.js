@@ -15976,7 +15976,7 @@ module.exports = Analyzer = (function() {
   function Analyzer() {}
 
   Analyzer.prototype.analyze = function(net) {
-    var aspect_ratios, d, dim_in, failed, feature_map, i, infered_dim, isglobal, j, k, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, mem, mode, module, n, newshape, num_inputs, num_ops, num_priors, num_region_proposals, numout, op, ops, p, pad_h, pad_w, params, parent, parent2, permutation, pooltype, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref39, ref4, ref40, ref41, ref42, ref43, ref44, ref45, ref46, ref47, ref48, ref49, ref5, ref6, ref7, ref8, ref9, roi_proposals, settings, shape, size, stride_h, stride_w, summary, trivial_layers, val;
+    var aspect_ratios, d, dilation, dim_in, failed, feature_map, group, i, infered_dim, isglobal, j, k, kernel, kernel_h, kernel_w, key, l, layertype, len, len1, len2, len3, mem, mode, module, n, newshape, num_inputs, num_ops, num_priors, num_region_proposals, numout, op, ops, p, pad_h, pad_w, params, parent, parent2, permutation, pooltype, prod_in_dims, prod_out_dims, ref, ref1, ref10, ref11, ref12, ref13, ref14, ref15, ref16, ref17, ref18, ref19, ref2, ref20, ref21, ref22, ref23, ref24, ref25, ref26, ref27, ref28, ref29, ref3, ref30, ref31, ref32, ref33, ref34, ref35, ref36, ref37, ref38, ref39, ref4, ref40, ref41, ref42, ref43, ref44, ref45, ref46, ref47, ref48, ref49, ref5, ref50, ref51, ref6, ref7, ref8, ref9, roi_proposals, settings, shape, size, stride_h, stride_w, summary, trivial_layers, val;
     ref = net.sortTopologically();
     for (i = 0, len = ref.length; i < len; i++) {
       n = ref[i];
@@ -16031,11 +16031,15 @@ module.exports = Analyzer = (function() {
           pad_w = (ref10 = params.pad_w) != null ? ref10 : (ref11 = params.pad) != null ? ref11 : 0;
           pad_h = (ref12 = params.pad_h) != null ? ref12 : (ref13 = params.pad) != null ? ref13 : 0;
           numout = params.num_output;
-          d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
-          d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
+          group = (ref14 = params.group) != null ? ref14 : 1;
+          dilation = (ref15 = params.dilation) != null ? ref15 : 1;
+          kernel = dilation * (kernel_w - 1) + 1;
+          d.wOut = Math.floor((d.wIn + 2 * pad_w - kernel) / stride_w) + 1;
+          kernel = dilation * (kernel_h - 1) + 1;
+          d.hOut = Math.floor((d.hIn + 2 * pad_h - kernel) / stride_h) + 1;
           d.chOut = numout;
-          d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut * d.batchOut;
-          d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut;
+          d.comp.macc = (kernel_w * kernel_h) * (d.wOut * d.hOut) * d.chIn * d.chOut * d.batchOut / group;
+          d.mem.param = (kernel_w * kernel_h) * d.chIn * d.chOut / group;
           d.mem.activation = (d.wOut * d.hOut) * d.chOut * d.batchOut;
           if (do_variants_analysis) {
             d.variants.push({
@@ -16094,14 +16098,14 @@ module.exports = Analyzer = (function() {
           break;
         case "pooling":
           params = n.attribs.pooling_param;
-          kernel_w = (ref14 = params.kernel_w) != null ? ref14 : params.kernel_size;
-          kernel_h = (ref15 = params.kernel_h) != null ? ref15 : params.kernel_size;
-          stride_w = (ref16 = params.stride_w) != null ? ref16 : (ref17 = params.stride) != null ? ref17 : 1;
-          stride_h = (ref18 = params.stride_h) != null ? ref18 : (ref19 = params.stride) != null ? ref19 : 1;
-          pad_w = (ref20 = params.pad_w) != null ? ref20 : (ref21 = params.pad) != null ? ref21 : 0;
-          pad_h = (ref22 = params.pad_h) != null ? ref22 : (ref23 = params.pad) != null ? ref23 : 0;
-          isglobal = (ref24 = params.global_pooling) != null ? ref24 : 0;
-          pooltype = ((ref25 = params.pool) != null ? ref25 : 'MAX').toUpperCase();
+          kernel_w = (ref16 = params.kernel_w) != null ? ref16 : params.kernel_size;
+          kernel_h = (ref17 = params.kernel_h) != null ? ref17 : params.kernel_size;
+          stride_w = (ref18 = params.stride_w) != null ? ref18 : (ref19 = params.stride) != null ? ref19 : 1;
+          stride_h = (ref20 = params.stride_h) != null ? ref20 : (ref21 = params.stride) != null ? ref21 : 1;
+          pad_w = (ref22 = params.pad_w) != null ? ref22 : (ref23 = params.pad) != null ? ref23 : 0;
+          pad_h = (ref24 = params.pad_h) != null ? ref24 : (ref25 = params.pad) != null ? ref25 : 0;
+          isglobal = (ref26 = params.global_pooling) != null ? ref26 : 0;
+          pooltype = ((ref27 = params.pool) != null ? ref27 : 'MAX').toUpperCase();
           d.chOut = d.chIn;
           d.wOut = Math.ceil((d.wIn + 2 * pad_w - kernel_w) / stride_w) + 1;
           d.hOut = Math.ceil((d.hIn + 2 * pad_h - kernel_h) / stride_h) + 1;
@@ -16130,8 +16134,8 @@ module.exports = Analyzer = (function() {
           break;
         case "lrn":
         case "normalize":
-          mode = (ref26 = (ref27 = n.attribs.lrn_param) != null ? ref27.norm_region : void 0) != null ? ref26 : 'ACROSS_CHANNELS';
-          size = (ref28 = (ref29 = n.attribs.lrn_param) != null ? ref29.local_size : void 0) != null ? ref28 : 1;
+          mode = (ref28 = (ref29 = n.attribs.lrn_param) != null ? ref29.norm_region : void 0) != null ? ref28 : 'ACROSS_CHANNELS';
+          size = (ref30 = (ref31 = n.attribs.lrn_param) != null ? ref31.local_size : void 0) != null ? ref30 : 1;
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
@@ -16146,15 +16150,16 @@ module.exports = Analyzer = (function() {
         case "concat":
           d.wOut = d.wIn;
           d.hOut = d.hIn;
-          ref30 = n.parents;
-          for (j = 0, len1 = ref30.length; j < len1; j++) {
-            p = ref30[j];
+          d.chIn = 0;
+          ref32 = n.parents;
+          for (j = 0, len1 = ref32.length; j < len1; j++) {
+            p = ref32[j];
             d.chIn += p.analysis.chOut;
           }
           d.chOut = d.chIn;
-          ref31 = n.parents;
-          for (k = 0, len2 = ref31.length; k < len2; k++) {
-            p = ref31[k];
+          ref33 = n.parents;
+          for (k = 0, len2 = ref33.length; k < len2; k++) {
+            p = ref33[k];
             failed = failed || (p.analysis.wOut !== d.wIn || p.analysis.hOut !== d.hIn);
           }
           if (failed) {
@@ -16193,15 +16198,15 @@ module.exports = Analyzer = (function() {
           d.hOut = d.hIn;
           d.chOut = d.chIn;
           failed = false;
-          ref32 = n.parents;
-          for (l = 0, len3 = ref32.length; l < len3; l++) {
-            p = ref32[l];
+          ref34 = n.parents;
+          for (l = 0, len3 = ref34.length; l < len3; l++) {
+            p = ref34[l];
             failed = failed || (d.wIn !== p.analysis.wOut) || (d.hIn !== p.analysis.hOut);
           }
           if (failed) {
             onerror('ELTWISE: input dimensions dont agree in ' + n.name);
           }
-          op = (ref33 = (ref34 = n.eltwise_param) != null ? (ref35 = ref34.operation) != null ? ref35.toUpperCase() : void 0 : void 0) != null ? ref33 : 'SUM';
+          op = (ref35 = (ref36 = n.eltwise_param) != null ? (ref37 = ref36.operation) != null ? ref37.toUpperCase() : void 0 : void 0) != null ? ref35 : 'SUM';
           if (op === 'SUM') {
             d.comp.add = d.wIn * d.hIn * d.chIn * d.batchOut;
           } else if (op === 'MAX') {
@@ -16215,12 +16220,12 @@ module.exports = Analyzer = (function() {
           break;
         case "deconvolution":
           params = n.attribs.convolution_param;
-          kernel_w = (ref36 = params.kernel_w) != null ? ref36 : params.kernel_size;
-          kernel_h = (ref37 = params.kernel_h) != null ? ref37 : params.kernel_size;
-          stride_w = (ref38 = params.stride_w) != null ? ref38 : (ref39 = params.stride) != null ? ref39 : 1;
-          stride_h = (ref40 = params.stride_h) != null ? ref40 : (ref41 = params.stride) != null ? ref41 : 1;
-          pad_w = (ref42 = params.pad_w) != null ? ref42 : (ref43 = params.pad) != null ? ref43 : 0;
-          pad_h = (ref44 = params.pad_h) != null ? ref44 : (ref45 = params.pad) != null ? ref45 : 0;
+          kernel_w = (ref38 = params.kernel_w) != null ? ref38 : params.kernel_size;
+          kernel_h = (ref39 = params.kernel_h) != null ? ref39 : params.kernel_size;
+          stride_w = (ref40 = params.stride_w) != null ? ref40 : (ref41 = params.stride) != null ? ref41 : 1;
+          stride_h = (ref42 = params.stride_h) != null ? ref42 : (ref43 = params.stride) != null ? ref43 : 1;
+          pad_w = (ref44 = params.pad_w) != null ? ref44 : (ref45 = params.pad) != null ? ref45 : 0;
+          pad_h = (ref46 = params.pad_h) != null ? ref46 : (ref47 = params.pad) != null ? ref47 : 0;
           numout = params.num_output;
           d.wOut = stride_w * (d.wIn - 1) + kernel_w - 2 * pad_w;
           d.hOut = stride_h * (d.hIn - 1) + kernel_h - 2 * pad_h;
@@ -16244,10 +16249,10 @@ module.exports = Analyzer = (function() {
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "implicit":
-          d.wIn = (ref46 = d.wIn) != null ? ref46 : "?";
-          d.hIn = (ref47 = d.hIn) != null ? ref47 : "?";
-          d.chIn = (ref48 = d.chIn) != null ? ref48 : "?";
-          d.batchIn = (ref49 = d.batchIn) != null ? ref49 : "?";
+          d.wIn = (ref48 = d.wIn) != null ? ref48 : "?";
+          d.hIn = (ref49 = d.hIn) != null ? ref49 : "?";
+          d.chIn = (ref50 = d.chIn) != null ? ref50 : "?";
+          d.batchIn = (ref51 = d.batchIn) != null ? ref51 : "?";
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
@@ -16363,11 +16368,11 @@ module.exports = Analyzer = (function() {
           out: d.chOut + "ch ⋅ " + d.wOut + "×" + d.hOut + " (×" + d.batchOut + ")"
         };
         ops = ((function() {
-          var ref50, results;
-          ref50 = d.comp;
+          var ref52, results;
+          ref52 = d.comp;
           results = [];
-          for (key in ref50) {
-            val = ref50[key];
+          for (key in ref52) {
+            val = ref52[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
@@ -16378,11 +16383,11 @@ module.exports = Analyzer = (function() {
           summary.ops = ops;
         }
         mem = ((function() {
-          var ref50, results;
-          ref50 = d.mem;
+          var ref52, results;
+          ref52 = d.mem;
           results = [];
-          for (key in ref50) {
-            val = ref50[key];
+          for (key in ref52) {
+            val = ref52[key];
             if (val !== 0) {
               results.push(val + '⋅' + key);
             }
