@@ -68,6 +68,7 @@ class Renderer
                 ID: id
                 name: n.name
                 type: n.type
+                batch: n.analysis.batchIn
                 ch_in: n.analysis.chIn
                 dim_in: n.analysis.wIn+'x'+n.analysis.hIn
                 ch_out: n.analysis.chOut
@@ -109,7 +110,7 @@ class Renderer
         num_subs = 0
         for n in tbl
             slashindex = n.name.indexOf('/')
-            if (slashindex>0 and entry.name.substring(0,slashindex) == n.name.substring(0,slashindex))
+            if (slashindex>0 and entry.name.substring(0,slashindex) == n.name.substring(0,slashindex)) # layer has same prefix as current summary item
                 num_subs++
                 entry.name = n.name.substring(0,slashindex)
                 entry.type = 'submodule('+num_subs+')'
@@ -128,6 +129,7 @@ class Renderer
                     ID: n.ID
                     name: n.name
                     type: n.type
+                    batch: n.batchIn
                     ch_in: n.ch_in
                     dim_in: n.dim_in
                     ch_out: n.ch_out
@@ -145,6 +147,7 @@ class Renderer
         total = {name: 'TOTAL', ops_raw: {}, mem_raw: {}, ops: {}, mem: {}}
         _.extend(total.ops_raw, summary[0].ops_raw) # copy zeros from data layer
         _.extend(total.mem_raw, summary[0].mem_raw) # idem
+        total.mem_raw.activation = 0 # data layer already uses activation --> set to zero
         for entry in summary
             #debugger
             total.ops_raw[key] += entry.ops_raw[key] for key of entry.ops_raw
@@ -159,8 +162,8 @@ class Renderer
         # Generate Detail Table and Summary
         detail = @generateTable()
         summary = @summarizeTable(detail)
-        $(@table).html('<h3>Summary:</h3>'+Tableify(summary)+
-                       '<h3>Details:</h3>'+Tableify(detail));
+        $(@table).html('<h3>Summary:</h3><a id="summary"></a>'+Tableify(summary)+
+                       '<h3>Details:</h3><a id="details"></a>'+Tableify(detail));
 
         # Add Sorting Headers
         $(@table+' table').tablesorter()
@@ -233,7 +236,12 @@ class Renderer
 
     insertLink: (src, dst) ->
         if not @iconify
-            lbl = src.analysis.chOut+'ch ⋅ '+src.analysis.wOut+'×'+src.analysis.hOut
+            ch = src.analysis.chOut ? "?"
+            w = src.analysis.wOut ? "?"
+            h = src.analysis.hOut ? "?"
+            b = src.analysis.batchOut ? "?"
+            lbl = ch+'ch ⋅ '+w+'×'+h
+            lbl += ' (×'+b+')' if b > 1
         else
             lbl = ''
         @graph.setEdge(src.name, dst.name, { arrowhead: 'vee', label: lbl } );

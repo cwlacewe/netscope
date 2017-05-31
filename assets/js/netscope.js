@@ -18852,6 +18852,7 @@ module.exports = Renderer = (function() {
         ID: id,
         name: n.name,
         type: n.type,
+        batch: n.analysis.batchIn,
         ch_in: n.analysis.chIn,
         dim_in: n.analysis.wIn + 'x' + n.analysis.hIn,
         ch_out: n.analysis.chOut,
@@ -18947,6 +18948,7 @@ module.exports = Renderer = (function() {
           ID: n.ID,
           name: n.name,
           type: n.type,
+          batch: n.batchIn,
           ch_in: n.ch_in,
           dim_in: n.dim_in,
           ch_out: n.ch_out,
@@ -18982,6 +18984,7 @@ module.exports = Renderer = (function() {
     };
     _.extend(total.ops_raw, summary[0].ops_raw);
     _.extend(total.mem_raw, summary[0].mem_raw);
+    total.mem_raw.activation = 0;
     for (k = 0, len1 = summary.length; k < len1; k++) {
       entry = summary[k];
       for (key in entry.ops_raw) {
@@ -19018,7 +19021,7 @@ module.exports = Renderer = (function() {
     var $node_elem, $table_elem, areatbl, detail, dim_in, entry, j, k, len, len1, line, ref, ref1, ref2, ref3, ref4, row, row_array, scroll_to, suffix, summary, summary_body, summary_table;
     detail = this.generateTable();
     summary = this.summarizeTable(detail);
-    $(this.table).html('<h3>Summary:</h3>' + Tableify(summary) + '<h3>Details:</h3>' + Tableify(detail));
+    $(this.table).html('<h3>Summary:</h3><a id="summary"></a>' + Tableify(summary) + '<h3>Details:</h3><a id="details"></a>' + Tableify(detail));
     $(this.table + ' table').tablesorter();
     scroll_to = function(el) {
       return function() {
@@ -19105,9 +19108,16 @@ module.exports = Renderer = (function() {
   };
 
   Renderer.prototype.insertLink = function(src, dst) {
-    var lbl;
+    var b, ch, h, lbl, ref, ref1, ref2, ref3, w;
     if (!this.iconify) {
-      lbl = src.analysis.chOut + 'ch ⋅ ' + src.analysis.wOut + '×' + src.analysis.hOut;
+      ch = (ref = src.analysis.chOut) != null ? ref : "?";
+      w = (ref1 = src.analysis.wOut) != null ? ref1 : "?";
+      h = (ref2 = src.analysis.hOut) != null ? ref2 : "?";
+      b = (ref3 = src.analysis.batchOut) != null ? ref3 : "?";
+      lbl = ch + 'ch ⋅ ' + w + '×' + h;
+      if (b > 1) {
+        lbl += ' (×' + b + ')';
+      }
     } else {
       lbl = '';
     }
