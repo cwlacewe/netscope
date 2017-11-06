@@ -28,9 +28,10 @@ class AppController
         $('#net-title').html(net.name.replace(/_/g, ' '))
 
         $('title').text(net.name.replace(/_/g, ' ')+' — Netscope CNN Analyzer')
-        editlink = $("<a>(edit)</a>").addClass("editlink")
-        editlink.appendTo $('#net-title')
-        editlink.click( => @showEditor(loader))
+        # editlink = $("<a>(edit)</a>").addClass("editlink")
+        # editlink.appendTo $('#net-title')
+        # editlink.click( => @showEditor(loader))
+        @showEditor(loader)
 
         @$netBox.show()
         @$tableBox.show()

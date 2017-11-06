@@ -20,8 +20,14 @@ h1, h2, h3 {
     width: 100%;*/
 }
 
+#editor-col {
+    position: fixed;
+}
+
 #net-column {
     width: 100%;
+    position: relative;
+    left: 30%;
 }
 
 .column {
@@ -49,6 +55,7 @@ h1, h2, h3 {
 #net-container {
     display: none;
     text-align: center;
+    /* overflow: auto; Added*/
 }
 
 #table-container {

@@ -16022,7 +16022,23 @@ module.exports = Analyzer = (function() {
           d.batchOut = d.batchIn;
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
-        case "convolution":
+		  //case "recurrent":
+		  //case "rnn":
+		  case "lstm": //TODO: Complete
+			params   = n.attribs.recurrent_param;
+			numout   = params.num_output; // Num mem cells
+			d.wOut = d.wIn;
+			d.hOut = numout;
+			d.chOut = d.chIn;
+			d.batchOut = d.batchIn;
+
+			//computation
+			d.comp.macc = 4 * (d.hOut * d.hOut + d.hOut * d.hIn);
+			//memory
+			d.mem.param = 4*d.hOut; //d.wIn*d.hIn*d.chIn*d.chOut;
+			d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut;
+		  break;
+		case "convolution":
           params = n.attribs.convolution_param;
           kernel_w = (ref4 = params.kernel_w) != null ? ref4 : params.kernel_size;
           kernel_h = (ref5 = params.kernel_h) != null ? ref5 : params.kernel_size;
@@ -16176,7 +16192,14 @@ module.exports = Analyzer = (function() {
           d.chOut = d.chIn = parent.chOut;
           d.comp.comp = d.wIn * d.hIn * d.chIn * d.batchOut;
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
-          break;
+		  break;
+		case "shift":
+			d.wIn = parent.wOut;
+			d.hIn = parent.hOut;
+			d.wOut = d.wIn;
+			d.hOut = d.hIn;
+			d.chOut = d.chIn = parent.chOut;
+			break;
         case "softmax":
         case "softmaxwithloss":
         case "softmax_loss":
@@ -16249,10 +16272,10 @@ module.exports = Analyzer = (function() {
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
         case "implicit":
-          d.wIn = (ref48 = d.wIn) != null ? ref48 : "?";
-          d.hIn = (ref49 = d.hIn) != null ? ref49 : "?";
-          d.chIn = (ref50 = d.chIn) != null ? ref50 : "?";
-          d.batchIn = (ref51 = d.batchIn) != null ? ref51 : "?";
+          d.wIn = (ref48 = d.wIn) != null ? ref48 : 1;//"?";
+          d.hIn = (ref49 = d.hIn) != null ? ref49 : 1;//"?";
+          d.chIn = (ref50 = d.chIn) != null ? ref50 : 1;//"?";
+          d.batchIn = (ref51 = d.batchIn) != null ? ref51 : 1;//"?";
           d.wOut = d.wIn;
           d.hOut = d.hIn;
           d.chOut = d.chIn;
@@ -19054,7 +19077,7 @@ module.exports = Renderer = (function() {
       areatbl = [];
       for (k = 0, len1 = detail.length; k < len1; k++) {
         entry = detail[k];
-        if (!(entry.type === "Convolution" || entry.type === "Concat" || entry.type === "SoftmaxWithLoss" || entry.type === "innerproduct")) {
+        if (!(entry.type === "Convolution" ||  entry.type === "Lstm" || entry.type === "Concat" || entry.type === "SoftmaxWithLoss" || entry.type === "innerproduct")) {
           continue;
         }
         dim_in = (ref1 = entry.dim_in) != null ? ref1.split("x").pop() : void 0;
@@ -19110,10 +19133,10 @@ module.exports = Renderer = (function() {
   Renderer.prototype.insertLink = function(src, dst) {
     var b, ch, h, lbl, ref, ref1, ref2, ref3, w;
     if (!this.iconify) {
-      ch = (ref = src.analysis.chOut) != null ? ref : "?";
-      w = (ref1 = src.analysis.wOut) != null ? ref1 : "?";
-      h = (ref2 = src.analysis.hOut) != null ? ref2 : "?";
-      b = (ref3 = src.analysis.batchOut) != null ? ref3 : "?";
+      ch = (ref = src.analysis.chOut) != null ? ref : 1;//"?";
+      w = (ref1 = src.analysis.wOut) != null ? ref1 : 1;//"?";
+      h = (ref2 = src.analysis.hOut) != null ? ref2 : 1;//"?";
+      b = (ref3 = src.analysis.batchOut) != null ? ref3 : 1;//"?";
       lbl = ch + 'ch ⋅ ' + w + '×' + h;
       if (b > 1) {
         lbl += ' (×' + b + ')';

@@ -4,70 +4,45 @@
     <meta charset="utf-8">
 	<meta name="description" content="Netscope Visualization Tool for Convolutional Neural Networks">
 	<meta name="keywords" content="netscope, CNN, visualization, tool, neural network, convnet, graph, deep learning">
-	<meta name="author" content="dgschwend">
-    <title>Quick Start &mdash; Netscope CNN Analyzer</title>
+    <meta name="author" content="dgschwend">
+    <meta name="author" content="cwlacewe">
+    <title>Quick Start &mdash; New Netscope CNN Analyzer</title>
     <link href='http://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="assets/css/doc.css">
 </head>
-<body>
+<body>    
     <div class="container">
         <h1>Netscope CNN Analyzer</h1>
         <p>A web-based tool for visualizing and analyzing convolutional neural network architectures (or technically, any directed acyclic graph).
 		   Currently supports <a href="http://caffe.berkeleyvision.org/">Caffe</a>'s prototxt format.</p>
-        <p>Basis by <a href="https://github.com/ethereon">ethereon</a>. Extended for CNN Analysis by <a href="https://github.com/dgschwend">dgschwend</a>.</p>
+        <p>Basis by <a href="https://github.com/ethereon">ethereon</a> and extended for CNN Analysis by <a href="https://github.com/dgschwend">dgschwend</a>.</p>
+        <p>Edited and extended by <a href="https://github.com/cwlacewe">cwlacewe</a>.</p>
     </div>
     <div class="container">
         <h2>Gist Support</h2>
         <p>If your <code>.prototxt</code> file is part of a GitHub Gist, you can visualize it by visiting this URL:</p>
-        <div class="code-box">http://dgschwend.github.io/netscope/#/gist/<span class="highlight">your-gist-id</span></div>
+        <div class="code-box">http://cwlacewe.github.io/netscope/#/gist/<span class="highlight">your-gist-id</span></div>
         <p>The Gist ID is the numeric suffix in the Gist's URL.</p>
-        <a href="./#/gist/e65799e70358c6782b1b" class="btn">View Example</a>
+        <a href="./#/gist/e65799e70358c6782b1b" class="btn">View AlexNet Example</a>
     </div>
     <div class="container">
         <h2>Editor</h2>
-        <p>You can use <a href="./#/editor">the inline editor</a> to enter your network definition (currently limited to valid Caffe's prototext) and visualize the network.</p>
+        <p>You can use <a href="./#/editor">the inline editor</a> to enter your network definition (currently limited to valid Caffe's prototxt) and visualize the network.</p>
         <p>Press <code>Shift+Enter</code> in the editor to render your network.</p>
         <a href="./#/editor" class="btn">Launch Editor</a>
     </div>
     <div class="container">
         <h2>Presets</h2>
-	<div class="preset">
-            <a href="./#/preset/zynqnet"><img src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f195.png" width=32 height=32/> ZynqNet CNN</a>
-            <div class="authors">David Gschwend (see <a href="https://www.github.com/dgschwend/zynqnet">the master thesis repository</a>)</div>
+        <div class="preset">
+            <a href="./#/preset/VGG_VOC0712Plus_SSD_300x300_ft_deploy">SSD: Single Shot MultiBox Detector (VGG_VOC0712Plus_SSD_300x300_ft_deploy)</a>
+            <div class="authors">Wei Liu, Dragomir Anguelov, Dumitru Erhan, Christian Szegedy, Scott Reed, Cheng-Yang Fu, Alexander C. Berg</div>
         </div>
         <div class="preset">
-            <a href="./#/preset/YOLO">YOLO</a>
-            <div class="authors">Joseph Redmon, Ali Farhadi</div>
+            <a href="./#/preset/1D_lstm">1D LSTM Example</a>
         </div>
         <div class="preset">
-            <a href="./#/preset/squeezenet">SqueezeNet</a>
-            <div class="authors">Forrest Iandola, Matthew Moskewicz, Khalid Ashraf, Song Han, William Dally, Kurt Keutzer</div>
+            <a href="./#/preset/lstm">Toy LSTM Example</a>
         </div>
-        <div class="preset">
-            <a href="./#/preset/squeezenet_v11">SqueezeNet v1.1</a>
-            <div class="authors">Forrest Iandola, Matthew Moskewicz, Khalid Ashraf, Song Han, William Dally, Kurt Keutzer</div>
-        </div>
-        <div class="preset">
-            <a href="./#/preset/inceptionv4">Inception v4</a>
-            <div class="authors">Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna</div>
-		</div>
-        <div class="preset">
-            <a href="./#/preset/inceptionv4_resnet">Inception-ResNet-v2</a>
-            <div class="authors">Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna</div>
-		</div>
-        <div class="preset">
-            <a href="./#/preset/inceptionv3">Inception v3</a>
-            <div class="authors">Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna</div>
-        </div>
-        <div class="preset">
-        <div class="preset">
-            <a href="./#/preset/resnet-50">ResNet-50</a>
-            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
-		</div>
-        <div class="preset">
-            <a href="./#/preset/resnet-50">ResNet-152</a>
-            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
-		</div>
         <div class="preset">
             <a href="./#/preset/alexnet">AlexNet</a>
             <div class="authors">Alex Krizhevsky, Ilya Sutskever, Geoffry Hinton</div>
@@ -81,20 +56,68 @@
             <div class="authors">Jonathan Long, et. al</div>
         </div>
         <div class="preset">
-<!--            <a href="./#/preset/fcn-8s-pascal">FCN-8s: Fully Convolutional Network &mdash; Three Stream</a>
-            <div class="authors">Jonathan Long, Evan Shelhamer, Trevor Darrell</div>
-        </div> -->
-        <div class="preset">
             <a href="./#/preset/googlenet">GoogLeNet</a>
             <div class="authors">Christian Szegedy, et. al.</div>
         </div>
+        <div class="preset">
+            <a href="./#/preset/inceptionv3">Inception v3</a>
+            <div class="authors">Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna</div>
+        </div>
+        <div class="preset">
+            <a href="./#/preset/inceptionv4">Inception v4</a>
+            <div class="authors">Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/inceptionv4_resnet">Inception-ResNet-v2</a>
+            <div class="authors">Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna</div>
+		</div>
         <div class="preset">
             <a href="./#/preset/nin">Network in Network</a>
             <div class="authors">Min Lin, Qiang Chen, Shuicheng Yan</div>
         </div>
         <div class="preset">
+            <a href="./#/preset/resnet-18-deploy">ResNet-18</a>
+            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/resnet-34">ResNet-34</a>
+            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/resnet-50">ResNet-50</a>
+            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/ResNet-50_merged.qconv.winograd.cwl">Xeon Optimized ResNet-50</a>
+            <div class="authors">Israel Team</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/resnet-101-deploy">ResNet-101</a>
+            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/resnet-152">ResNet-152</a>
+            <div class="authors">Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</div>
+		</div>
+        <div class="preset">
+            <a href="./#/preset/squeezenet">SqueezeNet</a>
+            <div class="authors">Forrest Iandola, Matthew Moskewicz, Khalid Ashraf, Song Han, William Dally, Kurt Keutzer</div>
+        </div>
+        <div class="preset">
+            <a href="./#/preset/squeezenet_v11">SqueezeNet v1.1</a>
+            <div class="authors">Forrest Iandola, Matthew Moskewicz, Khalid Ashraf, Song Han, William Dally, Kurt Keutzer</div>
+        </div>
+        <div class="preset">
             <a href="./#/preset/vgg-16">VGG 16 Layers</a>
             <div class="authors">Karen Simonyan, Andrew Zisserman</div>
+        </div>
+        <div class="preset">
+            <a href="./#/preset/YOLO">YOLOv1</a>
+            <div class="authors">Joseph Redmon, Ali Farhadi</div>
+        </div>
+	    <div class="preset">
+            <a href="./#/preset/zynqnet"> ZynqNet CNN</a>
+            <div class="authors">David Gschwend (see <a href="https://www.github.com/dgschwend/zynqnet">source repository</a>)</div>
         </div>
     </div>
 </body>
