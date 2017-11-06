@@ -32,9 +32,9 @@ module.exports =
                     if n.attribs.input_param?.shape?
                         shape     = n.attribs.input_param.shape
                         d.batchIn = shape.dim[0]
-                        d.chIn    = shape.dim[1]
-                        d.hIn     = shape.dim[2]
-                        d.wIn     = shape.dim[3]
+                        d.chIn    = shape.dim[1] ? 1
+                        d.hIn     = shape.dim[2] ? 1
+                        d.wIn     = shape.dim[3] ? 1
                     else if n.attribs.transform_param?.crop_size?
                         d.wIn = d.hIn = n.attribs.transform_param.crop_size
                         d.chIn = 3  # assume RGB
@@ -129,6 +129,20 @@ module.exports =
                           squeeze_cache : if n.name.indexOf("squeeze") > -1 then d.chOut*d.wOut*d.hOut else ""
                         })
 
+                when "lstm" #TODO: Complete , "recurrent", "rnn"
+                    #dimensions
+                    params   = n.attribs.recurrent_param
+                    numout   = params.num_output # Num mem cells
+                    d.wOut = d.wIn ? 1
+                    d.hOut = numout ? 1
+                    d.chOut = d.chIn ? 1
+                    d.batchOut = d.batchIn
+                    
+                    #computation
+                    d.comp.macc = 4 * (d.hOut * d.hOut + d.hOut * d.hIn)
+                    #memory
+                    d.mem.param = 4*d.hOut#d.wIn*d.hIn*d.chIn*d.chOut
+                    d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
                 when "innerproduct", "inner_product"
                     #dimensions
@@ -233,6 +247,14 @@ module.exports =
                     #memory
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
+                when "shift":
+                    # dimensions
+                    d.wIn = parent.wOut;
+                    d.hIn = parent.hOut;
+                    d.wOut = d.wIn;
+                    d.hOut = d.hIn;
+                    d.chOut = d.chIn = parent.chOut;
+            
                 when "softmax", "softmaxwithloss", "softmax_loss"
                     #dimensions
                     d.wOut = d.wIn
@@ -324,10 +346,10 @@ module.exports =
                 when "implicit"
                     #dimensions
                     #fix potentially undefined inputs
-                    d.wIn = d.wIn ? "?"
-                    d.hIn = d.hIn ? "?"
-                    d.chIn = d.chIn ? "?"
-                    d.batchIn = d.batchIn ? "?"
+                    d.wIn = d.wIn ? 1 #"?"
+                    d.hIn = d.hIn ? 1 #"?"
+                    d.chIn = d.chIn ? 1 #"?"
+                    d.batchIn = d.batchIn ? 1 #"?"
                     ## assume pass-through
                     d.wOut = d.wIn
                     d.hOut = d.hIn
@@ -461,6 +483,7 @@ module.exports =
                     debugger;
 
             # add dimensions to node attributes so they show in graph tooltips
+            # "euclideanloss", 
             trivial_layers = ["softmax", "softmaxwithloss", "softmax_loss", "dropout", "concat", "accuracy"]
             if not ($.inArray(layertype, trivial_layers) >= 0)
                 summary = {

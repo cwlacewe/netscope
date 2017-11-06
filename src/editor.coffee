@@ -2,7 +2,7 @@ module.exports =
 class Editor
     constructor: (@loaderFunc, loader) ->
         editorWidthPercentage = 30;
-        $editorBox = $($.parseHTML '<div class="column"></div>')
+        $editorBox = $($.parseHTML '<div id="editor-col" class="column"></div>')
         $editorBox.width(editorWidthPercentage+'%')
         $('#net-column').width((100-editorWidthPercentage)+'%')
         $('#master-container').prepend $editorBox
