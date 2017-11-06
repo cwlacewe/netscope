@@ -1,54 +1,65 @@
-Layer = require './layer.coffee'
+class Node
+    constructor: (@name, @type, @attribs={}, @analysis={}) ->
+        @parents = []
+        @children = []
+        # Nodes to be coalesced (by the renderer) with the current one.
+        # For instance, this can be used for grouping in-place operations.
+        # Note that this assumes the nodes to be coalesced and the current
+        # node form a simple chain structure.
+        @coalesce = []
+
+    addChild: (child) =>
+        if child not in @children
+            @children.push child
+            if @ not in child.parents
+                child.parents.push @
+
+    addChildren: (children) =>
+        _.forEach children, (c) => @addChild c
+
+    addParent: (parent) =>
+        parent.addChild @
+
+    addParents: (parents) =>
+        _.forEach parents, (p) => @addParent p
+
+    detachChild: (child) =>
+        _.pull @children, child
+        _.pull child.parents, @
+
+    detachChildren: =>
+        children = _.clone @children
+        _.forEach children, (c) => @detachChild c
+        return children
 
 module.exports =
 class Network
+    constructor: (@name='Untitled Network') ->
+        @nodes = []
 
-    processLayers: (@layers, header) ->
-        @layerTable = {}
-        implicitLayers = []
-        getSingleLayer = (name) =>
-            layer = @layerTable[name]
-            # Caffe allows top to be a layer which isn't explicitly
-            # defined. Create an implicit layer if this is detected.
-            if not layer?
-                layer = Layer.createImplicit name
-                implicitLayers.push layer
-                @layerTable[name] = layer
-            return layer
-        getLayers = (names) =>
-            names = [].concat names
-            _.map names, getSingleLayer
-        # Build the layer LUT.
-        for layer in @layers
-            @layerTable[layer.name] = layer
-        # Connect layers.
-        for layer in @layers
-            if layer.top?
-                layer.outputs = getLayers layer.top
-            if layer.bottom?
-                layer.inputs = getLayers layer.bottom
-        # Include implicit layers.
-        Array.prototype.push.apply(@layers, implicitLayers)
-        # Patch in data layer parameters.
-        if header?.input? and header?.input_dim?
-            inputs = [].concat header.input
-            dims = header.input_dim
-            if inputs.length==(dims.length/4)
-                for input, i in inputs
-                    dataLayer = @layerTable[input]
-                    dataLayer.type = 'data'
-                    dataLayer.params.shape = dims.slice i*4, (i+1)*4
-            else
-                console.log 'Inconsistent input dimensions.'
+    createNode: (label, type, attribs, analysis) ->
+        node = new Node label, type, attribs, analysis
+        @nodes.push node
+        return node
 
-    @fromCaffe: (desc, phase) ->
-        phase ?= 'train'
-        [header, layerDesc] = desc
-        layers = Layer.parseMultiple layerDesc
-        layers = _.filter layers, (layer) ->
-            layerPhase = layer.params.include?.phase
-            not (layerPhase? and layerPhase!=phase)
-        net = new Network()
-        net.name = header.name or 'Untitled Network'
-        net.processLayers layers, header
-        return net
+    sortTopologically: =>
+        sortedNodes = []
+        unsortedNodes = _.clone @nodes
+        for node in unsortedNodes
+            node.sort_ = {temp:false, perm: false}
+        visit = (node) ->
+            if node.sort_.temp==true
+                throw "Graph is not a DAG."
+            if node.sort_.perm
+                return
+            node.sort_.temp = true
+            for child in node.children
+                visit child
+            node.sort_.perm = true
+            node.sort_.temp = false
+            sortedNodes.unshift node
+        while unsortedNodes.length!=0
+            visit unsortedNodes.pop()
+        for node in sortedNodes
+            delete node.sort_
+        return sortedNodes

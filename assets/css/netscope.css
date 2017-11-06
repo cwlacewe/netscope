@@ -1,5 +1,3 @@
-/* Common */
-
 * { box-sizing: border-box; }
 
 html, body {
@@ -14,17 +12,22 @@ h1, h2, h3 {
     color: #554037;
     font-weight: 300;
 }
-
 /* Layout */
 
 #master-container {
-    overflow: hidden;
+    /*overflow: hidden;
     height: 100%;
-    width: 100%;
+    width: 100%;*/
+}
+
+#editor-col {
+    position: fixed;
 }
 
 #net-column {
     width: 100%;
+    position: relative;
+    left: 30%;
 }
 
 .column {
@@ -52,6 +55,31 @@ h1, h2, h3 {
 #net-container {
     display: none;
     text-align: center;
+    /* overflow: auto; Added*/
+}
+
+#table-container {
+    display: none;
+    text-align: center;   
+    padding-top:20px; 
+}
+
+#table-header {
+    padding-top: 20px;
+    border-top: 1px solid #554037;
+    min-width: 400px;
+    text-align: center;
+}
+
+#table-content {
+    text-align: center;
+}
+
+#table-content table {
+    display: inline-block;
+    text-align: left;
+    width:auto;
+    
 }
 
 #net-group {
@@ -66,6 +94,34 @@ h1, h2, h3 {
     border-bottom: 1px solid #554037;
     min-width: 400px;
     text-align: center;
+}
+
+#net-title .editlink {
+    font-size: 0.3em;
+    padding-left: 10px;
+    color: #554037;
+    cursor: pointer;
+}
+
+#net-error {
+    background-color: #C23739;
+    color: #FFF;
+    padding: 20px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    margin: 20px auto 20px auto;
+    width: 400px;
+    font-size: 12px;
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+
+#net-error .title {
+    border-bottom: 1px solid #FFABAC;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+#net-error .msg {
 }
 
 .node-label {
@@ -100,6 +156,19 @@ h1, h2, h3 {
     color: #FFF;
 }
 
+.node-type-batchnorm {
+    fill: #84AC7E;  /* dirty light green */
+}
+
+.node-type-lrn {
+    fill: #A265AC;  /* dirty pink */
+    fill: #bd0026;  /* deep red */
+}
+
+.node-type-lrn .node-label {
+    color: #fff;
+}
+
 .node-type-source {
     fill: #37A058;
 }
@@ -116,12 +185,24 @@ h1, h2, h3 {
     color: #FFF;
 }
 
+@-webkit-keyframes highlight {
+    from {color: #fff;}
+    to {color: #000;}
+}
+@keyframes highlight {
+    from {color: #fff;}
+    to {color: #000;}
+}
+.node-highlight {
+    animation: highlight 0.3s linear 0s 4 alternate
+}
+
 .edgePath path {
     stroke: #554037;
     fill: #554037;
     stroke-width: 1.5px;
 }
-.node-header {
+.node-info-header {
 }
 .node-param-row {
 }
@@ -135,9 +216,17 @@ h1, h2, h3 {
 .node-param-value {
     color: #26BF8C;
 }
-.node-title {
+.node-info-title {
     color:#F7BF57;
 }
-.node-type {
+.node-info-type {
     color: #C499FF;
+}
+.node-info-annotation {
+    color: #69BFFF;
+}
+.node-info-group:not(:first-child) {
+    padding-top:5px;
+    margin-top:10px;
+    border-top: 1px dotted #52637D;
 }

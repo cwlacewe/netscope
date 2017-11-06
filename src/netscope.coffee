@@ -1,46 +1,29 @@
-Source      = require './source.coffee'
-Renderer    = require './renderer.coffee'
-Editor      = require './editor.coffee'
+AppController   = require './app.coffee'
+CaffeNetwork    = require './caffe/caffe.coffee'
+Loader          = require './loader.coffee'
 
-class LoadingController
-    constructor: (@loader) ->
-        @inProgress = false
-        @$spinner = $('#net-spinner')
-        @$netBox = $('#net-container')
-        @svg = '#net-svg'
+window.do_variants_analysis = false
 
-    start: (args...) -> 
-        if @inProgress
-            return
-        @inProgress = true
-        @$netBox.hide()
-        @$spinner.show()
-        @loader args..., (net) => @finish(net)
-
-    finish: (net) ->
-        @$spinner.hide()
-        $('#net-title').html(net.name.replace(/_/g, ' '))
-        @$netBox.show()
-        $(@svg).empty()
-        $('.qtip').remove()
-        renderer = new Renderer net, @svg
-        @inProgress = false
-
-makeLoader = (loader) ->
-    controller = new LoadingController loader
-    (args...) ->
-        controller.start args...
-
-showEditor = () ->
-    # Lazily load CodeMirror
-    if(_.isUndefined(window.CodeMirror))
-        $.getScript 'assets/js/lib/codemirror.min.js', ->
-            window.netEditor = new Editor(makeLoader Source.fromProtoText)
+showDocumentation = ->
+    window.location.href = 'quickstart.html'
 
 $(document).ready ->
+    app = new AppController()
+    # Setup Caffe model loader.
+    # This can be replaced with any arbitrary parser to support
+    # formats other than Caffe.
+    loader = new Loader(CaffeNetwork)
+    # Helper function for wrapping the load calls.
+    makeLoader = (loadingFunc, loader) ->
+        (args...) ->
+            app.startLoading loadingFunc, loader, args...
+
+    # Register routes
     routes =
-        '/gist/:gistID' : makeLoader Source.fromGist
-        '/url/(.+)'     : makeLoader Source.fromURL
-        '/editor(/?)'   : showEditor
+       '/gist/:gistID' : makeLoader loader.fromGist, loader
+       '/url/(.+)'     : makeLoader loader.fromURL, loader
+       '/preset/:name' : makeLoader loader.fromPreset, loader
+       '/editor(/?)'   : => app.showEditor loader
+       '/doc'          : => showDocumentation()
     router = Router(routes)
-    router.init()
+    router.init '/doc'

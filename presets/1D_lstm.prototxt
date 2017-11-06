@@ -1,0 +1,51 @@
+name: "LSTM"
+input: "data"
+# T = 320 time_steps, N = 1 streams, 1-D data
+#input_shape { dim: 1 dim: 1 dim: 1}
+input_dim: 1
+input_dim: 1
+input_dim: 1
+input: "clip"
+input_shape { dim: 1 dim: 1 }
+layer {
+  name: "lstm1"
+  type: "LSTM"
+  bottom: "data"
+  bottom: "clip"
+  top: "lstm1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  recurrent_param {
+    num_output: 15
+    weight_filler {
+      type: "gaussian"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+  bottom: "lstm1"
+  top: "ip1"
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "gaussian"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
