@@ -284,7 +284,8 @@ module.exports =
                     #dimensions
                     # d.wOut = d.hOut = 1
                     # d.chOut = d.chIn * d.wIn * d.hIn
-                    d.wOut = d.hOut = d.chIn * d.wIn * d.hIn
+                    d.wOut = 1
+                    d.hOut = d.chIn * d.wIn * d.hIn
                     d.chOut = 1
                     #computation
                     # --none

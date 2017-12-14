@@ -16232,7 +16232,8 @@ module.exports = Analyzer = (function() {
         case "flatten":
         //   d.wOut = d.hOut = 1;
 		//   d.chOut = d.chIn * d.wIn * d.hIn;
-		  d.wOut = d.hOut = d.chIn * d.wIn * d.hIn;
+		  d.wOut = 1;
+		  d.hOut = d.chIn * d.wIn * d.hIn;
 		  d.chOut = 1;
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
