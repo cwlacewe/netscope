@@ -247,6 +247,19 @@ module.exports =
                     #memory
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
+                #tanh use some memory, do some comparisons
+                when "tanh"
+                    #dimensions
+                    d.wIn = parent.wOut
+                    d.hIn = parent.hOut
+                    d.wOut = d.wIn
+                    d.hOut = d.hIn
+                    d.chOut = d.chIn = parent.chOut
+                    #computation
+                    d.comp.macc = d.wIn*d.hIn*d.chIn*d.batchIn
+                    #memory
+                    d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
+
                 when "shift":
                     # dimensions
                     d.wIn = parent.wOut;
