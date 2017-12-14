@@ -16183,7 +16183,7 @@ module.exports = Analyzer = (function() {
           }
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
           break;
-        case "relu":
+		case "relu":
         case "dropout":
           d.wIn = parent.wOut;
           d.hIn = parent.hOut;
@@ -16193,6 +16193,15 @@ module.exports = Analyzer = (function() {
           d.comp.comp = d.wIn * d.hIn * d.chIn * d.batchOut;
           d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
 		  break;
+		  case "tanh":
+			d.wIn = parent.wOut;
+			d.hIn = parent.hOut;
+			d.wOut = d.wIn;
+			d.hOut = d.hIn;
+			d.chOut = d.chIn = parent.chOut;
+			d.comp.macc = d.wIn * d.hIn * d.chIn * d.batchIn;
+			d.mem.activation = d.wOut * d.hOut * d.chOut * d.batchOut;
+			break;
 		case "shift":
 			d.wIn = parent.wOut;
 			d.hIn = parent.hOut;
