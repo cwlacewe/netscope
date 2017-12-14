@@ -248,7 +248,7 @@ module.exports =
                     d.mem.activation = d.wOut*d.hOut*d.chOut*d.batchOut
 
                 #tanh use some memory, do some comparisons
-                when "tanh"
+                when "tanh", "sigmoid"
                     #dimensions
                     d.wIn = parent.wOut
                     d.hIn = parent.hOut
@@ -282,8 +282,10 @@ module.exports =
 
                 when "flatten"
                     #dimensions
-                    d.wOut = d.hOut = 1
-                    d.chOut = d.chIn * d.wIn * d.hIn
+                    # d.wOut = d.hOut = 1
+                    # d.chOut = d.chIn * d.wIn * d.hIn
+                    d.wOut = d.hOut = d.chIn * d.wIn * d.hIn
+                    d.chOut = 1
                     #computation
                     # --none
                     #memory
